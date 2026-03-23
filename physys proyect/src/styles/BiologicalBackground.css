@@ -1,0 +1,39 @@
+/* src/styles/BiologicalBackground.css */
+
+.biological-bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -10; 
+  overflow: hidden;
+  /* Opacidad del contenedor general para no tapar la app */
+  opacity: 0.6; 
+  pointer-events: none; 
+}
+
+/* Estilos para que el video llene toda la pantalla sin deformarse */
+.biological-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Recorta los bordes si es necesario para llenar la pantalla */
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* LA MAGIA DE COLORIZACIÓN SOBRE EL VIDEO */
+.biological-color-overlay {
+  position: absolute;
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  
+  /* Tomamos el color del tema activo */
+  background-color: var(--accent-primary);
+  
+  /* Fusionamos el color con el video que está debajo */
+  mix-blend-mode: hue; 
+}
