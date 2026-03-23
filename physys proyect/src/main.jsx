@@ -1,27 +1,32 @@
+// src/main.jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Toaster } from 'sonner'; 
 import PhysisAssistant from './components/PhysisAssistant';
 import Navbar from './components/Navbar';
+// 1. IMPORTAMOS EL NUEVO COMPONENTE DE FONDO
+import BiologicalBackground from './components/BiologicalBackground';
 import './styles/index.css';
-import './styles/themes.css'; // <-- 1. IMPORTAMOS LOS TEMAS GLOBALES
+import './styles/themes.css'; 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Quitamos bg-[#fdf5f8] porque themes.css ahora controla el fondo */}
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen font-sans relative overflow-hidden">
       
+      {/* 2. INYECTAMOS EL FONDO DINÁMICO AQUÍ, DETRÁS DE TODO */}
+      <BiologicalBackground />
+
       <Navbar />
 
-      <main className="p-8 pt-32">
-        {/* Usamos text-accent para que el color cambie con el tema */}
+      <main className="p-8 pt-32 relative z-10">
         <h1 className="text-4xl font-bold text-accent">Physis</h1>
         <p className="mt-2 text-lg">Sistema de Optimización del Potencial Humano.</p>
 
-        <div className="mt-12 flex h-[200vh] items-start justify-center rounded-2xl border-2 border-dashed border-gray-400/30 p-8">
+        {/* Contenedor Falso para Scroll (solo para pruebas) */}
+        <div className="mt-12 flex h-[200vh] items-start justify-center rounded-2xl border-2 border-dashed border-gray-400/30 p-8 relative z-20">
           <p className="text-center font-medium">
-            Prueba elegir "Tema: Bioluminiscente" o "Sintético". 👇 <br /> 
-            Verás que el logo y este texto cambian, al igual que el fondo general. 👆
+            Prueba cambiar los temas y activar el Dark Mode. 👇 <br /> 
+            Verás cómo la red biológica de fondo cambia de color suavemente. 👆
           </p>
         </div>
       </main>
