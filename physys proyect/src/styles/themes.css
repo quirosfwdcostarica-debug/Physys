@@ -1,0 +1,61 @@
+/* src/styles/themes.css */
+
+/* Tema 1: Orgánico (Por Defecto) */
+:root {
+  --bg-base: #fdf5f8;
+  --text-main: #3D1B5D;
+  --accent-primary: #D5006D;
+  --glass-opacity: 0.4;
+  --glass-bg: rgba(253, 245, 248, var(--glass-opacity));
+}
+
+/* Tema 2: Sintético */
+body[data-theme='Sintético'] {
+  --bg-base: #f0f4f8;
+  --text-main: #0f172a;
+  --accent-primary: #3b82f6; /* Azul brillante */
+  --glass-bg: rgba(240, 244, 248, var(--glass-opacity));
+}
+
+/* Tema 3: Neuronal */
+body[data-theme='Neuronal'] {
+  --bg-base: #fffbeb;
+  --text-main: #451a03;
+  --accent-primary: #ea580c; /* Naranja intenso */
+  --glass-bg: rgba(255, 251, 235, var(--glass-opacity));
+}
+
+/* Tema 4: Bioluminiscente */
+body[data-theme='Bioluminiscente'] {
+  --bg-base: #ecfdf5;
+  --text-main: #064e3b;
+  --accent-primary: #10b981; /* Verde neón */
+  --glass-bg: rgba(236, 253, 245, var(--glass-opacity));
+}
+
+/* Tema 5: Cuántico */
+body[data-theme='Cuántico'] {
+  --bg-base: #faf5ff;
+  --text-main: #2e1065;
+  --accent-primary: #8b5cf6; /* Morado eléctrico */
+  --glass-bg: rgba(250, 245, 255, var(--glass-opacity));
+}
+
+/* Dark Mode Global (Sobrescribe cualquier tema) */
+body.dark-mode {
+  --bg-base: #10051C; /* Muy oscuro */
+  --text-main: #FDF5F8;
+  --accent-primary: #FF3399; 
+  --glass-bg: rgba(16, 5, 28, var(--glass-opacity));
+}
+
+/* --- CLASES GLOBALES UTILITARIAS --- */
+body {
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.text-accent { color: var(--accent-primary); transition: color 0.5s ease; }
+.bg-accent { background-color: var(--accent-primary); transition: background-color 0.5s ease; }
+.hover-bg-accent:hover { background-color: var(--accent-primary); color: white; }
