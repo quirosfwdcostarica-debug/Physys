@@ -1,14 +1,14 @@
 import React from 'react';
-import { Toaster } from 'sonner'; // Importamos el proveedor de alertas profesionales
+import ReactDOM from 'react-dom/client';
+import { Toaster } from 'sonner'; 
 import PhysisAssistant from './components/PhysisAssistant';
-import './styles/App.css'; // Asegúrate de haber movido el archivo
+import './styles/index.css'; // Aquí debe estar tu configuración de Tailwind
 
-function App() {
-  return (
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
     <div className="min-h-screen bg-[#fdf5f8] text-[#3D1B5D] font-sans">
-      {/* Aquí irá el Routing de tus páginas en el futuro.
-        Por ahora, dejamos un contenedor base para probar.
-      */}
+      
+      {/* Contenido Principal */}
       <main className="p-8">
         <h1 className="text-4xl font-bold text-[#D5006D]">Physis</h1>
         <p className="mt-2 text-lg">Sistema de Optimización del Potencial Humano.</p>
@@ -19,8 +19,7 @@ function App() {
 
       {/* Nodo del Asistente (Global) */}
       <PhysisAssistant />
+      
     </div>
-  );
-}
-
-export default App;
+  </React.StrictMode>,
+);
