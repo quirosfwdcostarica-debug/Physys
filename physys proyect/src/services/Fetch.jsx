@@ -3,20 +3,19 @@ const BASE_URL = 'http://localhost:3001';
 
 export const obtenerCategoriasAPI = async () => {
   const respuesta = await fetch(`${BASE_URL}/categorias`);
-  if (!respuesta.ok) throw new Error("Error en la conexión.");
+  if (!respuesta.ok) throw new Error("Error en la conexión con la red de Physis.");
   return await respuesta.json();
 };
 
 export const obtenerConsejoPorCategoriaAPI = async (categoriaId) => {
   const respuesta = await fetch(`${BASE_URL}/consejos`);
-  if (!respuesta.ok) throw new Error("Error en la conexión.");
+  if (!respuesta.ok) throw new Error("Error en la conexión con el núcleo de datos.");
   const todosLosConsejos = await respuesta.json();
   return todosLosConsejos.find(c => String(c.categoriaId) === String(categoriaId)); 
 };
 
-// --- CRUD DE METAS (ACTUALIZADO PARA PRIVACIDAD: OPCIÓN A) ---
+// --- CRUD DE METAS MULTITENANT ---
 export const obtenerMetasAPI = async (userId) => {
-  // Ahora filtramos por userId directamente en la URL
   const respuesta = await fetch(`${BASE_URL}/metas_usuario?userId=${userId}`);
   if (!respuesta.ok) throw new Error("Error al obtener las metas.");
   return await respuesta.json();
@@ -48,7 +47,7 @@ export const eliminarMetaAPI = async (id) => {
   return true;
 };
 
-// --- AUTENTICACIÓN Y PERFIL (OPCIÓN C) ---
+// --- AUTENTICACIÓN Y PERFIL ---
 export const iniciarSesionAPI = async (email, password) => {
   const respuesta = await fetch(`${BASE_URL}/usuarios?email=${email}&password=${password}`);
   const usuarios = await respuesta.json();
@@ -91,26 +90,29 @@ export const obtenerTodosLosUsuariosAPI = async () => {
   return await respuesta.json();
 };
 
-export const agregarCategoriaAPI = async (categoria) => {
+// ACTUALIZADO: agregarCategoriaAPI ya soporta el nuevo payload {icono, imagen, ...}
+export const agregarCategoriaAPI = async (categoriaPayload) => {
   const respuesta = await fetch(`${BASE_URL}/categorias`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(categoria)
+    body: JSON.stringify(categoriaPayload)
   });
+  if (!respuesta.ok) throw new Error("Fallo al inyectar el nuevo vector.");
   return await respuesta.json();
 };
 
 export const eliminarCategoriaAPI = async (id) => {
-  await fetch(`${BASE_URL}/categorias/${id}`, { method: 'DELETE' });
+  const respuesta = await fetch(`${BASE_URL}/categorias/${id}`, { method: 'DELETE' });
+  if (!respuesta.ok) throw new Error("Fallo al purgar el vector.");
   return true;
 };
 
-// Para la Opción B que viene en el siguiente paso:
 export const agregarConsejoAPI = async (consejo) => {
   const respuesta = await fetch(`${BASE_URL}/consejos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(consejo)
   });
+  if (!respuesta.ok) throw new Error("Fallo al inyectar la directriz.");
   return await respuesta.json();
 };
