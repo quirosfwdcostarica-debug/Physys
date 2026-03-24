@@ -1,4 +1,13 @@
 {
+  "usuarios": [
+    {
+      "id": "1",
+      "nombre": "Arquitecto Physis",
+      "email": "admin@physis.com",
+      "password": "admin",
+      "rol": "admin"
+    }
+  ],
   "categorias": [
     { "id": "1", "nombre": "Optimización Biomecánica", "rubro": "Fitness", "icono": "💪", "descripcion": "Tensión progresiva y adaptación muscular." },
     { "id": "2", "nombre": "Expansión Cognitiva", "rubro": "Educación", "icono": "🧠", "descripcion": "Neuroplasticidad y absorción de datos." },
