@@ -10,5 +10,6 @@
     { "id": "2", "categoriaId": "2", "texto": "La neuroplasticidad se maximiza en la primera hora tras despertar. Consume 20 páginas de material de alta densidad." },
     { "id": "3", "categoriaId": "3", "texto": "Reduce la exposición a fotones de luz azul 90 minutos antes del ciclo de sueño para optimizar la producción de melatonina." },
     { "id": "4", "categoriaId": "4", "texto": "La disciplina es biología aplicada. Ancla tu nuevo hábito a una acción que ya realices inconscientemente todos los días." }
-  ]
+  ],
+  "metas_usuario": []
 }
