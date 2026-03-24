@@ -13,11 +13,18 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    
     if (isLogin) {
       await login(email, password);
     } else {
-      await register(nombre, email, password);
+      const registroExitoso = await register(nombre, email, password);
+      if (registroExitoso) {
+        // SI EL REGISTRO FUE BIEN, VOLVEMOS AL LOGIN Y LIMPIAMOS LA CONTRASEÑA
+        setIsLogin(true);
+        setPassword('');
+      }
     }
+    
     setIsLoading(false);
   };
 

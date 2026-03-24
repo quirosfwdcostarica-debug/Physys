@@ -3,17 +3,14 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { iniciarSesionAPI, registrarUsuarioAPI } from '../services/Fetch';
 import { toast } from 'sonner';
 
-// Creamos el contexto
 const AuthContext = createContext();
 
-// Hook personalizado para usar el contexto fácilmente en cualquier parte
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [cargandoAuth, setCargandoAuth] = useState(true);
 
-  // EFECTO DE MEMORIA: Al recargar, revisa si ya estábamos logueados
   useEffect(() => {
     const sesionGuardada = localStorage.getItem('physis_session');
     if (sesionGuardada) {
@@ -42,12 +39,13 @@ export const AuthProvider = ({ children }) => {
         nombre,
         email,
         password,
-        rol: 'usuario' // Por defecto, todos son usuarios normales
+        rol: 'usuario' 
       };
-      const user = await registrarUsuarioAPI(newUser);
-      setUsuario(user);
-      localStorage.setItem('physis_session', JSON.stringify(user));
-      toast.success(`Perfil creado. Bienvenido a Physis, ${user.nombre}.`);
+      
+      // SOLO REGISTRAMOS EN LA BASE DE DATOS, NO INICIAMOS SESIÓN
+      await registrarUsuarioAPI(newUser);
+      
+      toast.success("Perfil creado exitosamente. Por favor, inicia sesión para continuar.");
       return true;
     } catch (error) {
       toast.error(error.message);

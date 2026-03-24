@@ -6,12 +6,12 @@ import Navbar from './components/Navbar';
 import BiologicalBackground from './components/BiologicalBackground';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
+import AdminDashboard from './components/AdminDashboard'; // Importamos el panel
 import { useAuth } from './context/AuthContext';
 
 const App = () => {
   const { usuario, cargandoAuth } = useAuth();
 
-  // Pantalla de carga mientras lee el localStorage
   if (cargandoAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -19,6 +19,20 @@ const App = () => {
       </div>
     );
   }
+
+  // --- EL SEMÁFORO DE ARQUITECTO (OPCIÓN A) ---
+  // Función para decidir qué renderizar según el estado y rol
+  const renderContenidoPrincipal = () => {
+    if (!usuario) {
+      return <Auth />; // Si no hay usuario, Login.
+    }
+    
+    if (usuario.rol === 'admin') {
+      return <AdminDashboard />; // Si es admin, Centro de Comando.
+    }
+    
+    return <Dashboard />; // Si es usuario normal, Panel de Optimización.
+  };
 
   return (
     <div className="min-h-screen font-sans relative overflow-hidden text-white">
@@ -31,14 +45,14 @@ const App = () => {
           <p className="text-xl md:text-2xl font-light opacity-90">Sistema de Optimización del Potencial Humano.</p>
         </div>
 
-        {/* EL GUARDIA DE SEGURIDAD: Si hay usuario, Dashboard. Si no, Login. */}
-        {usuario ? <Dashboard /> : <Auth />}
+        {/* Renderizamos dinámicamente el contenido */}
+        {renderContenidoPrincipal()}
 
       </main>
 
       <Toaster position="top-right" richColors />
-      {/* El Asistente IA solo aparece si estás logueado */}
-      {usuario && <PhysisAssistant />}
+      {/* El Asistente IA solo es para usuarios normales (no para admins) */}
+      {usuario && usuario.rol !== 'admin' && <PhysisAssistant />}
     </div>
   );
 };
