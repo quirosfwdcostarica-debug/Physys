@@ -1,11 +1,16 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite' // <-- 1. Importamos el plugin de Tailwind
+import tailwindcss from '@tailwindcss/vite' // <-- ¡Esto fue lo que borré por error!
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(), // <-- 2. Lo agregamos aquí
+    tailwindcss(), // <-- Restauramos Tailwind
   ],
+  server: {
+    watch: {
+      ignored: ['**/db.json'] // Evita el reseteo brusco
+    }
+  }
 })
