@@ -4,20 +4,22 @@ import {
   obtenerTodosLosUsuariosAPI, 
   obtenerCategoriasAPI, 
   agregarCategoriaAPI, 
-  eliminarCategoriaAPI 
+  eliminarCategoriaAPI,
+  agregarConsejoAPI // NUEVO: Poder para inyectar directrices
 } from '../services/Fetch';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   const { usuario, logout } = useAuth();
-  const [vistaActiva, setVistaActiva] = useState('usuarios'); // 'usuarios' o 'vectores'
+  const [vistaActiva, setVistaActiva] = useState('usuarios'); // 'usuarios', 'vectores', o 'conocimiento'
   
   const [listaUsuarios, setListaUsuarios] = useState([]);
   const [listaCategorias, setListaCategorias] = useState([]);
   
-  // Estado para el formulario de nueva categoría
+  // Estados para los formularios
   const [nuevaCat, setNuevaCat] = useState({ nombre: '', rubro: '', icono: '⚡', descripcion: '' });
+  const [nuevoConsejo, setNuevoConsejo] = useState({ categoriaId: '', texto: '' });
 
   useEffect(() => {
     cargarDatosAdmin();
@@ -33,6 +35,7 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- CONTROLADORES DE VECTORES ---
   const handleCrearCategoria = async (e) => {
     e.preventDefault();
     try {
@@ -56,13 +59,29 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- NUEVO: CONTROLADOR DE DIRECTRICES (OPCIÓN B) ---
+  const handleCrearConsejo = async (e) => {
+    e.preventDefault();
+    if (!nuevoConsejo.categoriaId) {
+      return toast.error("Selecciona un Vector base para anclar la directriz.");
+    }
+    try {
+      const consejoPayload = { ...nuevoConsejo, id: crypto.randomUUID() };
+      await agregarConsejoAPI(consejoPayload);
+      setNuevoConsejo({ categoriaId: '', texto: '' });
+      toast.success("Directriz neuronal añadida a la base de conocimiento.");
+    } catch (error) {
+      toast.error("Fallo al inyectar la directriz.");
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto pb-24 animate-in fade-in slide-in-from-bottom-8">
       
       {/* HEADER ADMIN */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 p-6 rounded-3xl border border-accent/40 bg-accent/10 backdrop-blur-xl">
         <div className="flex items-center gap-4">
-          <span className="text-4xl">👑</span>
+          <span className="text-4xl drop-shadow-[0_0_15px_var(--accent-primary)]">👑</span>
           <div>
             <h2 className="text-2xl font-bold text-accent">Centro de Comando de Arquitectos</h2>
             <p className="text-sm text-gray-300">Autenticado como: {usuario.nombre}</p>
@@ -74,18 +93,15 @@ const AdminDashboard = () => {
       </div>
 
       {/* PESTAÑAS DE NAVEGACIÓN */}
-      <div className="flex gap-4 mb-8">
-        <button 
-          onClick={() => setVistaActiva('usuarios')}
-          className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'usuarios' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-        >
-          👥 Monitor de Enlaces (Usuarios)
+      <div className="flex flex-wrap gap-4 mb-8">
+        <button onClick={() => setVistaActiva('usuarios')} className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'usuarios' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
+          👥 Monitor de Enlaces
         </button>
-        <button 
-          onClick={() => setVistaActiva('vectores')}
-          className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'vectores' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-        >
+        <button onClick={() => setVistaActiva('vectores')} className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'vectores' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
           ⚙️ Gestor de Vectores
+        </button>
+        <button onClick={() => setVistaActiva('conocimiento')} className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'conocimiento' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
+          🧠 Base de Conocimiento
         </button>
       </div>
 
@@ -125,8 +141,6 @@ const AdminDashboard = () => {
       {/* VISTA 2: GESTOR DE VECTORES (CATEGORÍAS) */}
       {vistaActiva === 'vectores' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          {/* Formulario Nueva Categoría */}
           <div className="bg-black/40 border border-white/10 rounded-3xl p-6 backdrop-blur-xl h-fit">
             <h3 className="text-xl font-bold text-accent mb-4">Inyectar Nuevo Vector</h3>
             <form onSubmit={handleCrearCategoria} className="space-y-4">
@@ -152,7 +166,6 @@ const AdminDashboard = () => {
             </form>
           </div>
 
-          {/* Lista de Vectores Existentes */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-gray-200 mb-4">Vectores Activos en el Sistema</h3>
             {listaCategorias.map(cat => (
@@ -170,7 +183,59 @@ const AdminDashboard = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
 
+      {/* VISTA 3: BASE DE CONOCIMIENTO (NUEVO - OPCIÓN B) */}
+      {vistaActiva === 'conocimiento' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-black/40 border border-white/10 rounded-3xl p-6 backdrop-blur-xl h-fit">
+            <h3 className="text-xl font-bold text-accent mb-4">Inyectar Nueva Directriz</h3>
+            <p className="text-sm text-gray-400 mb-6">Asigna un consejo o protocolo específico que los usuarios recibirán al interactuar con un Vector.</p>
+            
+            <form onSubmit={handleCrearConsejo} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Vector Destino</label>
+                <select 
+                  required
+                  value={nuevoConsejo.categoriaId} 
+                  onChange={e => setNuevoConsejo({...nuevoConsejo, categoriaId: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent cursor-pointer"
+                >
+                  <option value="" className="text-black">-- Selecciona un Vector --</option>
+                  {listaCategorias.map(cat => (
+                    <option key={cat.id} value={cat.id} className="text-black">
+                      {cat.icono} {cat.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Directriz / Consejo</label>
+                <textarea 
+                  required 
+                  value={nuevoConsejo.texto} 
+                  onChange={e => setNuevoConsejo({...nuevoConsejo, texto: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent resize-none h-32" 
+                  placeholder="Ej. Reduce la ingesta de azúcares refinados un 20% durante esta semana para estabilizar los picos de insulina..." 
+                />
+              </div>
+              
+              <button type="submit" className="w-full bg-accent text-white font-bold rounded-xl px-4 py-3 hover:shadow-[0_0_20px_var(--accent-primary)] transition-all cursor-pointer">
+                + Guardar Directriz
+              </button>
+            </form>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
+             <h3 className="text-lg font-bold text-gray-200 mb-2">¿Cómo funciona el enrutamiento?</h3>
+             <p className="text-sm text-gray-400 leading-relaxed">
+               Al asignar una directriz a un Vector (por ejemplo, "Optimización Biomecánica"), nuestro motor de base de datos actualizará el nodo correspondiente. 
+               <br/><br/>
+               Cuando un sujeto (Usuario) haga clic en esa tarjeta en su Dashboard personal, el sistema buscará en la Base de Conocimiento y le mostrará este protocolo exacto para que pueda integrarlo a sus Metas Activas.
+             </p>
+          </div>
         </div>
       )}
 
