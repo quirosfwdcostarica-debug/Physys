@@ -6,6 +6,20 @@
       "email": "admin@physis.com",
       "password": "admin",
       "rol": "admin"
+    },
+    {
+      "id": "b72512d5-6cc6-4c30-9d5d-9ab9922de316",
+      "nombre": "a",
+      "email": "a@a",
+      "password": "1234",
+      "rol": "usuario"
+    },
+    {
+      "id": "6c03fab6-dbc6-48a5-a9fd-959dfc048eba",
+      "nombre": "hola",
+      "email": "a@aq",
+      "password": "2342",
+      "rol": "usuario"
     }
   ],
   "categorias": [
