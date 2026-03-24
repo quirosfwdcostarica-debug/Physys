@@ -8,12 +8,13 @@ import {
   actualizarMetaAPI,
   eliminarMetaAPI
 } from '../services/Fetch';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import UserProfilePanel from './UserProfilePanel';
-// 1. IMPORTAMOS EL TEMPORIZADOR
 import FocusTimer from './FocusTimer';
 
 const Dashboard = () => {
+  const { usuario } = useAuth(); // EXTRAEMOS EL USUARIO ACTIVO
   const [categorias, setCategorias] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
   const [consejoActual, setConsejoActual] = useState(null);
@@ -23,20 +24,21 @@ const Dashboard = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        // OPCIÓN A: PASAMOS EL USUARIO ID PARA OBTENER SOLO SUS METAS
         const [dataCategorias, dataMetas] = await Promise.all([
           obtenerCategoriasAPI(),
-          obtenerMetasAPI()
+          obtenerMetasAPI(usuario.id) 
         ]);
         setCategorias(dataCategorias);
         setMetas(dataMetas);
       } catch (error) {
-        toast.error("Error al sincronizar con la base de datos de Physis.");
+        toast.error("Error al sincronizar con la base de datos.");
       } finally {
         setCargando(false);
       }
     };
-    cargarDatos();
-  }, []);
+    if(usuario) cargarDatos();
+  }, [usuario]);
 
   const totalTareas = metas.length;
   const tareasCompletadas = metas.filter(meta => meta.completada).length;
@@ -44,28 +46,26 @@ const Dashboard = () => {
   const manejarSeleccion = async (categoria) => {
     setCategoriaSeleccionada(categoria);
     setConsejoActual(null); 
-    
     try {
       const consejo = await obtenerConsejoPorCategoriaAPI(categoria.id);
-      
       if (consejo && consejo.texto) {
         setConsejoActual(consejo);
         toast.success(`Protocolo de ${categoria.nombre} cargado.`);
       } else {
-        setConsejoActual({ texto: "Error de conexión: No se encontró el protocolo en la base de datos." });
-        toast.error("Datos incompletos.");
+        setConsejoActual({ texto: "Sin directrices detectadas en el sistema." });
       }
     } catch (error) {
-      setConsejoActual({ texto: "Error crítico al contactar al servidor." });
-      toast.error("No se pudo obtener el consejo del servidor.");
+      toast.error("Error al obtener la directriz.");
     }
   };
 
   const agregarProtocolo = async () => {
-    if (!consejoActual || consejoActual.texto.includes("Error")) return;
+    if (!consejoActual || consejoActual.texto.includes("Sin directrices")) return;
     
+    // OPCIÓN A: VINCULAMOS LA META AL USUARIO ACTIVO
     const nuevaMeta = {
       id: crypto.randomUUID(), 
+      userId: usuario.id,
       texto: consejoActual.texto,
       rubro: categoriaSeleccionada.rubro,
       icono: categoriaSeleccionada.icono,
@@ -85,37 +85,22 @@ const Dashboard = () => {
     try {
       const metaActualizada = await actualizarMetaAPI(meta.id, !meta.completada);
       setMetas(metas.map(m => m.id === meta.id ? metaActualizada : m));
-      
-      if (!meta.completada) {
-        toast.success("¡Excelente! Protocolo cumplido. Tu nivel de optimización aumenta.");
-      }
-    } catch (error) {
-      toast.error("Error al actualizar la meta.");
-    }
+      if (!meta.completada) toast.success("¡Protocolo cumplido!");
+    } catch (error) { toast.error("Error al actualizar."); }
   };
 
   const borrarMeta = async (id) => {
     try {
       await eliminarMetaAPI(id);
       setMetas(metas.filter(m => m.id !== id));
-      toast.info("Protocolo descartado. Tus métricas se han ajustado.");
-    } catch (error) {
-      toast.error("Error al eliminar la meta.");
-    }
+      toast.info("Protocolo descartado.");
+    } catch (error) { toast.error("Error al eliminar."); }
   };
 
-  if (cargando) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-xl font-medium animate-pulse text-accent">Sincronizando Red Neuronal de Evolución...</p>
-      </div>
-    );
-  }
+  if (cargando) return <div className="h-64 flex justify-center items-center"><p className="text-xl animate-pulse text-accent">Sincronizando...</p></div>;
 
   return (
     <div className="w-full max-w-6xl mx-auto pb-24">
-      
-      {/* --- SECCIÓN SUPERIOR: METRICAS Y TEMPORIZADOR --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold mb-4 text-accent">Nivel de Optimización Personal</h2>
@@ -130,15 +115,7 @@ const Dashboard = () => {
       <h2 className="text-2xl font-bold mb-6 text-accent">Vectores de Optimización</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {categorias.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => manejarSeleccion(cat)}
-            className={`flex flex-col items-center justify-center p-6 rounded-2xl border transition-all duration-300 backdrop-blur-md text-left w-full cursor-pointer
-              ${categoriaSeleccionada?.id === cat.id 
-                ? 'border-accent bg-accent/20 shadow-[0_0_20px_rgba(var(--accent-primary-rgb),0.3)] transform scale-105' 
-                : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/30'
-              }`}
-          >
+          <button key={cat.id} onClick={() => manejarSeleccion(cat)} className={`flex flex-col items-center justify-center p-6 rounded-2xl border transition-all duration-300 backdrop-blur-md text-left w-full cursor-pointer ${categoriaSeleccionada?.id === cat.id ? 'border-accent bg-accent/20 shadow-[0_0_20px_rgba(var(--accent-primary-rgb),0.3)] transform scale-105' : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/30'}`}>
             <span className="text-5xl mb-4">{cat.icono}</span>
             <h3 className="text-lg font-bold mb-2 w-full text-center tracking-tight">{cat.nombre}</h3>
             <p className="text-xs opacity-70 text-center">{cat.descripcion}</p>
@@ -153,27 +130,15 @@ const Dashboard = () => {
               <span className="text-3xl">{categoriaSeleccionada.icono}</span>
               <h3 className="text-2xl font-bold text-accent">Análisis: {categoriaSeleccionada.rubro}</h3>
             </div>
-            
-            {consejoActual && !consejoActual.texto.includes("Error") && (
-              <button 
-                onClick={agregarProtocolo}
-                className="bg-accent text-white px-4 py-2 rounded-lg font-bold hover:bg-white hover:text-accent transition-colors shadow-lg cursor-pointer"
-              >
-                + Integrar Protocolo
-              </button>
+            {consejoActual && !consejoActual.texto.includes("Sin directrices") && (
+              <button onClick={agregarProtocolo} className="bg-accent text-white px-4 py-2 rounded-lg font-bold hover:bg-white hover:text-accent transition-colors cursor-pointer">+ Integrar Protocolo</button>
             )}
           </div>
-          
           <div className="bg-white/5 p-6 rounded-xl border border-white/10 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-accent animate-pulse"></div>
             {consejoActual ? (
-              <p className="text-lg leading-relaxed text-gray-200">
-                <span className="font-bold text-accent mr-2">DIRECTRIZ:</span>
-                {consejoActual.texto}
-              </p>
-            ) : (
-              <p className="text-lg leading-relaxed text-gray-400 animate-pulse">Analizando variables bio-métricas...</p>
-            )}
+              <p className="text-lg leading-relaxed text-gray-200"><span className="font-bold text-accent mr-2">DIRECTRIZ:</span>{consejoActual.texto}</p>
+            ) : (<p className="text-lg text-gray-400 animate-pulse">Analizando variables bio-métricas...</p>)}
           </div>
         </div>
       )}
@@ -183,41 +148,21 @@ const Dashboard = () => {
           <h2 className="text-2xl font-bold mb-6 text-accent">Protocolos Activos</h2>
           <div className="space-y-4">
             {metas.map((meta) => (
-              <div 
-                key={meta.id} 
-                className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-300 backdrop-blur-sm
-                  ${meta.completada ? 'bg-green-900/20 border-green-500/30' : 'bg-black/40 border-white/10 hover:border-accent/50'}
-                `}
-              >
+              <div key={meta.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all duration-300 backdrop-blur-sm ${meta.completada ? 'bg-green-900/20 border-green-500/30' : 'bg-black/40 border-white/10 hover:border-accent/50'}`}>
                 <div className="flex items-center gap-4">
-                  <input 
-                    type="checkbox" 
-                    checked={meta.completada}
-                    onChange={() => toggleMeta(meta)}
-                    className="w-6 h-6 rounded border-white/30 text-accent focus:ring-accent cursor-pointer accent-current text-accent"
-                  />
+                  <input type="checkbox" checked={meta.completada} onChange={() => toggleMeta(meta)} className="w-6 h-6 rounded cursor-pointer accent-current text-accent" />
                   <span className="text-2xl">{meta.icono}</span>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold uppercase tracking-wider text-accent/80">{meta.rubro}</span>
-                    <span className={`text-lg transition-all duration-300 ${meta.completada ? 'line-through text-gray-500' : 'text-gray-100'}`}>
-                      {meta.texto}
-                    </span>
+                    <span className={`text-lg transition-all duration-300 ${meta.completada ? 'line-through text-gray-500' : 'text-gray-100'}`}>{meta.texto}</span>
                   </div>
                 </div>
-                
-                <button 
-                  onClick={() => borrarMeta(meta.id)}
-                  className="text-gray-500 hover:text-red-500 transition-colors p-2 cursor-pointer"
-                  title="Descartar Protocolo"
-                >
-                  ✖
-                </button>
+                <button onClick={() => borrarMeta(meta.id)} className="text-gray-500 hover:text-red-500 cursor-pointer p-2">✖</button>
               </div>
             ))}
           </div>
         </div>
       )}
-
     </div>
   );
 };
