@@ -6,9 +6,22 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   
-  const [activeTheme, setActiveTheme] = useState('Orgánico');
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [glassOpacity, setGlassOpacity] = useState(40);
+  // --- INICIO DE LA MAGIA DE MEMORIA (LOCALSTORAGE) ---
+  const [activeTheme, setActiveTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('physis_theme');
+    return savedTheme ? savedTheme : 'Orgánico';
+  });
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('physis_darkMode');
+    return savedMode !== null ? JSON.parse(savedMode) : false;
+  });
+
+  const [glassOpacity, setGlassOpacity] = useState(() => {
+    const savedOpacity = localStorage.getItem('physis_glassOpacity');
+    return savedOpacity !== null ? Number(savedOpacity) : 40;
+  });
+  // --- FIN DE LA MAGIA DE MEMORIA ---
   
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -29,23 +42,26 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // 1. INYECTAR EL TEMA GLOBAL EN TODA LA PÁGINA
+  // 1. INYECTAR EL TEMA GLOBAL EN TODA LA PÁGINA Y GUARDARLO
   useEffect(() => {
     document.body.setAttribute('data-theme', activeTheme);
+    localStorage.setItem('physis_theme', activeTheme); // Guardamos en memoria
   }, [activeTheme]);
 
-  // 2. INYECTAR EL MODO OSCURO GLOBAL
+  // 2. INYECTAR EL MODO OSCURO GLOBAL Y GUARDARLO
   useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
     } else {
       document.body.classList.remove('dark-mode');
     }
+    localStorage.setItem('physis_darkMode', JSON.stringify(isDarkMode)); // Guardamos en memoria
   }, [isDarkMode]);
 
-  // 3. ACTUALIZAR LA OPACIDAD GLOBAL (CSS Variable)
+  // 3. ACTUALIZAR LA OPACIDAD GLOBAL (CSS Variable) Y GUARDARLA
   useEffect(() => {
     document.documentElement.style.setProperty('--glass-opacity', glassOpacity / 100);
+    localStorage.setItem('physis_glassOpacity', glassOpacity.toString()); // Guardamos en memoria
   }, [glassOpacity]);
 
   return (
@@ -86,7 +102,7 @@ const Navbar = () => {
           {showSettings && (
             <div className="absolute top-12 right-0 w-48 p-4 rounded-xl backdrop-blur-md dropdown-menu">
               <p className="text-xs font-semibold mb-2 uppercase tracking-wider text-accent">Opacidad Glass</p>
-              <input type="range" min="0" max="100" value={glassOpacity} onChange={(e) => setGlassOpacity(e.target.value)} className="w-full" />
+              <input type="range" min="0" max="100" value={glassOpacity} onChange={(e) => setGlassOpacity(e.target.value)} className="w-full cursor-pointer" />
               <p className="text-xs text-right mt-1 opacity-70">{glassOpacity}%</p>
             </div>
           )}

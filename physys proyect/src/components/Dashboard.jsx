@@ -9,6 +9,9 @@ import {
   eliminarMetaAPI
 } from '../services/Fetch';
 import { toast } from 'sonner';
+import UserProfilePanel from './UserProfilePanel';
+// 1. IMPORTAMOS EL TEMPORIZADOR
+import FocusTimer from './FocusTimer';
 
 const Dashboard = () => {
   const [categorias, setCategorias] = useState([]);
@@ -35,20 +38,21 @@ const Dashboard = () => {
     cargarDatos();
   }, []);
 
+  const totalTareas = metas.length;
+  const tareasCompletadas = metas.filter(meta => meta.completada).length;
+
   const manejarSeleccion = async (categoria) => {
     setCategoriaSeleccionada(categoria);
-    setConsejoActual(null); // Estado de carga inicial
+    setConsejoActual(null); 
     
     try {
       const consejo = await obtenerConsejoPorCategoriaAPI(categoria.id);
       
-      // RED DE SEGURIDAD: Verificamos si realmente llegó el consejo
       if (consejo && consejo.texto) {
         setConsejoActual(consejo);
         toast.success(`Protocolo de ${categoria.nombre} cargado.`);
       } else {
-        // Si la base de datos responde pero está vacía
-        setConsejoActual({ texto: "Error de conexión: No se encontró el protocolo en la base de datos. Verifica tu db.json." });
+        setConsejoActual({ texto: "Error de conexión: No se encontró el protocolo en la base de datos." });
         toast.error("Datos incompletos.");
       }
     } catch (error) {
@@ -58,7 +62,6 @@ const Dashboard = () => {
   };
 
   const agregarProtocolo = async () => {
-    // Evitamos guardar errores como metas
     if (!consejoActual || consejoActual.texto.includes("Error")) return;
     
     const nuevaMeta = {
@@ -82,8 +85,9 @@ const Dashboard = () => {
     try {
       const metaActualizada = await actualizarMetaAPI(meta.id, !meta.completada);
       setMetas(metas.map(m => m.id === meta.id ? metaActualizada : m));
+      
       if (!meta.completada) {
-        toast.success("¡Excelente! Protocolo cumplido.");
+        toast.success("¡Excelente! Protocolo cumplido. Tu nivel de optimización aumenta.");
       }
     } catch (error) {
       toast.error("Error al actualizar la meta.");
@@ -94,7 +98,7 @@ const Dashboard = () => {
     try {
       await eliminarMetaAPI(id);
       setMetas(metas.filter(m => m.id !== id));
-      toast.info("Protocolo descartado.");
+      toast.info("Protocolo descartado. Tus métricas se han ajustado.");
     } catch (error) {
       toast.error("Error al eliminar la meta.");
     }
@@ -103,7 +107,7 @@ const Dashboard = () => {
   if (cargando) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-xl font-medium animate-pulse text-accent">Sincronizando Red Neuronal...</p>
+        <p className="text-xl font-medium animate-pulse text-accent">Sincronizando Red Neuronal de Evolución...</p>
       </div>
     );
   }
@@ -111,8 +115,20 @@ const Dashboard = () => {
   return (
     <div className="w-full max-w-6xl mx-auto pb-24">
       
+      {/* --- SECCIÓN SUPERIOR: METRICAS Y TEMPORIZADOR --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="lg:col-span-2">
+          <h2 className="text-2xl font-bold mb-4 text-accent">Nivel de Optimización Personal</h2>
+          <UserProfilePanel totalTasks={totalTareas} completedTasks={tareasCompletadas} />
+        </div>
+        <div className="lg:col-span-1">
+          <h2 className="text-2xl font-bold mb-4 text-accent text-center lg:text-left">Módulo de Enfoque</h2>
+          <FocusTimer />
+        </div>
+      </div>
+      
       <h2 className="text-2xl font-bold mb-6 text-accent">Vectores de Optimización</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {categorias.map((cat) => (
           <button
             key={cat.id}
@@ -124,7 +140,7 @@ const Dashboard = () => {
               }`}
           >
             <span className="text-5xl mb-4">{cat.icono}</span>
-            <h3 className="text-lg font-bold mb-2 w-full text-center">{cat.nombre}</h3>
+            <h3 className="text-lg font-bold mb-2 w-full text-center tracking-tight">{cat.nombre}</h3>
             <p className="text-xs opacity-70 text-center">{cat.descripcion}</p>
           </button>
         ))}
