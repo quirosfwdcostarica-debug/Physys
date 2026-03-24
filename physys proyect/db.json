@@ -1,15 +1,56 @@
 {
   "categorias": [
-    { "id": "1", "nombre": "Optimización Biomecánica", "rubro": "Fitness", "icono": "💪", "descripcion": "Tensión progresiva y adaptación muscular." },
-    { "id": "2", "nombre": "Expansión Cognitiva", "rubro": "Educación", "icono": "🧠", "descripcion": "Neuroplasticidad y absorción de datos." },
-    { "id": "3", "nombre": "Homeostasis", "rubro": "Descanso", "icono": "🧘", "descripcion": "Recuperación y equilibrio del sistema." },
-    { "id": "4", "nombre": "Sistemas de Rutina", "rubro": "Hábitos", "icono": "⚙️", "descripcion": "Automatización de procesos diarios." }
+    {
+      "id": "1",
+      "nombre": "Optimización Biomecánica",
+      "rubro": "Fitness",
+      "icono": "💪",
+      "descripcion": "Tensión progresiva y adaptación muscular."
+    },
+    {
+      "id": "2",
+      "nombre": "Expansión Cognitiva",
+      "rubro": "Educación",
+      "icono": "🧠",
+      "descripcion": "Neuroplasticidad y absorción de datos."
+    },
+    {
+      "id": "3",
+      "nombre": "Homeostasis",
+      "rubro": "Descanso",
+      "icono": "🧘",
+      "descripcion": "Recuperación y equilibrio del sistema."
+    },
+    {
+      "id": "4",
+      "nombre": "Sistemas de Rutina",
+      "rubro": "Hábitos",
+      "icono": "⚙️",
+      "descripcion": "Automatización de procesos diarios."
+    }
   ],
   "consejos": [
-    { "id": "1", "categoriaId": "1", "texto": "Tu sistema muscular requiere tensión progresiva. Aumenta la carga un 5% en tu próximo ciclo de entrenamiento." },
-    { "id": "2", "categoriaId": "2", "texto": "La neuroplasticidad se maximiza en la primera hora tras despertar. Consume 20 páginas de material de alta densidad." },
-    { "id": "3", "categoriaId": "3", "texto": "Reduce la exposición a fotones de luz azul 90 minutos antes del ciclo de sueño para optimizar la producción de melatonina." },
-    { "id": "4", "categoriaId": "4", "texto": "La disciplina es biología aplicada. Ancla tu nuevo hábito a una acción que ya realices inconscientemente todos los días." }
+    {
+      "id": "1",
+      "categoriaId": "1",
+      "texto": "Tu sistema muscular requiere tensión progresiva. Aumenta la carga un 5% en tu próximo ciclo de entrenamiento."
+    },
+    {
+      "id": "2",
+      "categoriaId": "2",
+      "texto": "La neuroplasticidad se maximiza en la primera hora tras despertar. Consume 20 páginas de material de alta densidad."
+    },
+    {
+      "id": "3",
+      "categoriaId": "3",
+      "texto": "Reduce la exposición a fotones de luz azul 90 minutos antes del ciclo de sueño para optimizar la producción de melatonina."
+    },
+    {
+      "id": "4",
+      "categoriaId": "4",
+      "texto": "La disciplina es biología aplicada. Ancla tu nuevo hábito a una acción que ya realices inconscientemente todos los días."
+    }
   ],
-  "metas_usuario": []
+  "metas_usuario": [],
+  "$schema": "./node_modules/json-server/schema.json"
 }
