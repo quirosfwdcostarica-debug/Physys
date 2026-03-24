@@ -9,8 +9,9 @@ import {
   eliminarMetaAPI
 } from '../services/Fetch';
 import { toast } from 'sonner';
-// 1. IMPORTAMOS EL NUEVO PANEL
 import UserProfilePanel from './UserProfilePanel';
+// 1. IMPORTAMOS EL TEMPORIZADOR
+import FocusTimer from './FocusTimer';
 
 const Dashboard = () => {
   const [categorias, setCategorias] = useState([]);
@@ -37,7 +38,6 @@ const Dashboard = () => {
     cargarDatos();
   }, []);
 
-  // --- NUEVA LÓGICA DE CÁLCULO DE MÉTRICAS (HCI PREMIUM) ---
   const totalTareas = metas.length;
   const tareasCompletadas = metas.filter(meta => meta.completada).length;
 
@@ -86,7 +86,6 @@ const Dashboard = () => {
       const metaActualizada = await actualizarMetaAPI(meta.id, !meta.completada);
       setMetas(metas.map(m => m.id === meta.id ? metaActualizada : m));
       
-      // Feedback dinámico basado en la acción
       if (!meta.completada) {
         toast.success("¡Excelente! Protocolo cumplido. Tu nivel de optimización aumenta.");
       }
@@ -116,9 +115,17 @@ const Dashboard = () => {
   return (
     <div className="w-full max-w-6xl mx-auto pb-24">
       
-      {/* --- NUEVA SECCIÓN: PANEL DE USUARIO Y MÉTRICAS --- */}
-      <h2 className="text-2xl font-bold mb-6 text-accent">Nivel de Optimización Personal</h2>
-      <UserProfilePanel totalTasks={totalTareas} completedTasks={tareasCompletadas} />
+      {/* --- SECCIÓN SUPERIOR: METRICAS Y TEMPORIZADOR --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="lg:col-span-2">
+          <h2 className="text-2xl font-bold mb-4 text-accent">Nivel de Optimización Personal</h2>
+          <UserProfilePanel totalTasks={totalTareas} completedTasks={tareasCompletadas} />
+        </div>
+        <div className="lg:col-span-1">
+          <h2 className="text-2xl font-bold mb-4 text-accent text-center lg:text-left">Módulo de Enfoque</h2>
+          <FocusTimer />
+        </div>
+      </div>
       
       <h2 className="text-2xl font-bold mb-6 text-accent">Vectores de Optimización</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
