@@ -5,20 +5,20 @@ import {
   obtenerCategoriasAPI, 
   agregarCategoriaAPI, 
   eliminarCategoriaAPI,
-  agregarConsejoAPI // NUEVO: Poder para inyectar directrices
+  agregarConsejoAPI 
 } from '../services/Fetch';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   const { usuario, logout } = useAuth();
-  const [vistaActiva, setVistaActiva] = useState('usuarios'); // 'usuarios', 'vectores', o 'conocimiento'
+  const [vistaActiva, setVistaActiva] = useState('usuarios'); 
   
   const [listaUsuarios, setListaUsuarios] = useState([]);
   const [listaCategorias, setListaCategorias] = useState([]);
   
-  // Estados para los formularios
-  const [nuevaCat, setNuevaCat] = useState({ nombre: '', rubro: '', icono: '⚡', descripcion: '' });
+  // Estado para la nueva categoría, ahora incluye 'imagen'
+  const [nuevaCat, setNuevaCat] = useState({ nombre: '', rubro: '', icono: '⚡', descripcion: '', imagen: null });
   const [nuevoConsejo, setNuevoConsejo] = useState({ categoriaId: '', texto: '' });
 
   useEffect(() => {
@@ -35,6 +35,23 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- CONVERSOR DE IMAGEN A BASE64 ---
+  const handleCargarImagen = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2000000) { // Límite de 2MB aprox para evitar sobrecargar json-server
+        toast.error("La imagen es demasiado pesada. Usa una menor a 2MB.");
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNuevaCat({ ...nuevaCat, imagen: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // --- CONTROLADORES DE VECTORES ---
   const handleCrearCategoria = async (e) => {
     e.preventDefault();
@@ -42,7 +59,9 @@ const AdminDashboard = () => {
       const catPayload = { ...nuevaCat, id: crypto.randomUUID() };
       const catGuardada = await agregarCategoriaAPI(catPayload);
       setListaCategorias([...listaCategorias, catGuardada]);
-      setNuevaCat({ nombre: '', rubro: '', icono: '⚡', descripcion: '' });
+      // Reiniciamos el formulario
+      setNuevaCat({ nombre: '', rubro: '', icono: '⚡', descripcion: '', imagen: null });
+      document.getElementById('file-upload').value = ''; // Limpiamos el input de archivo
       toast.success("Nuevo Vector inyectado a la red con éxito.");
     } catch (error) {
       toast.error("Fallo al crear el vector.");
@@ -59,7 +78,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- NUEVO: CONTROLADOR DE DIRECTRICES (OPCIÓN B) ---
+  // --- CONTROLADOR DE DIRECTRICES ---
   const handleCrearConsejo = async (e) => {
     e.preventDefault();
     if (!nuevoConsejo.categoriaId) {
@@ -138,20 +157,37 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* VISTA 2: GESTOR DE VECTORES (CATEGORÍAS) */}
+      {/* VISTA 2: GESTOR DE VECTORES CON SOPORTE DE IMÁGENES */}
       {vistaActiva === 'vectores' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-black/40 border border-white/10 rounded-3xl p-6 backdrop-blur-xl h-fit">
             <h3 className="text-xl font-bold text-accent mb-4">Inyectar Nuevo Vector</h3>
             <form onSubmit={handleCrearCategoria} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Icono (Emoji)</label>
-                <input type="text" value={nuevaCat.icono} onChange={e => setNuevaCat({...nuevaCat, icono: e.target.value})} className="w-20 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-center focus:outline-none focus:border-accent" />
+              
+              {/* NUEVO: UPLOAD DE IMAGEN */}
+              <div className="p-4 border border-dashed border-white/20 rounded-xl bg-white/5 text-center">
+                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Imagen de Fondo (Opcional)</label>
+                <input 
+                  type="file" 
+                  id="file-upload"
+                  accept="image/*" 
+                  onChange={handleCargarImagen} 
+                  className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent/20 file:text-accent hover:file:bg-accent/30 cursor-pointer"
+                />
+                {nuevaCat.imagen && <p className="text-xs text-green-400 mt-2">✓ Imagen procesada en Base64</p>}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nombre del Vector</label>
-                <input required type="text" value={nuevaCat.nombre} onChange={e => setNuevaCat({...nuevaCat, nombre: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="Ej. Nutrición Celular" />
+
+              <div className="flex gap-4">
+                <div className="w-1/3">
+                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Clave Icono</label>
+                  <input type="text" value={nuevaCat.icono} onChange={e => setNuevaCat({...nuevaCat, icono: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="Ej. bio" />
+                </div>
+                <div className="w-2/3">
+                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Nombre del Vector</label>
+                  <input required type="text" value={nuevaCat.nombre} onChange={e => setNuevaCat({...nuevaCat, nombre: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="Ej. Nutrición Celular" />
+                </div>
               </div>
+              
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Rubro</label>
                 <input required type="text" value={nuevaCat.rubro} onChange={e => setNuevaCat({...nuevaCat, rubro: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent" placeholder="Ej. Dieta" />
@@ -169,15 +205,23 @@ const AdminDashboard = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-gray-200 mb-4">Vectores Activos en el Sistema</h3>
             {listaCategorias.map(cat => (
-              <div key={cat.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-accent/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl">{cat.icono}</span>
+              <div key={cat.id} className="relative overflow-hidden flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-accent/50 transition-colors group">
+                
+                {/* Miniatura de fondo si tiene imagen */}
+                {cat.imagen && (
+                  <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${cat.imagen})` }}></div>
+                )}
+                
+                <div className="relative z-10 flex items-center gap-4">
+                  <div className="w-12 h-12 flex items-center justify-center bg-black/50 rounded-lg border border-white/10 font-mono text-xs text-accent">
+                    {cat.icono}
+                  </div>
                   <div>
-                    <h4 className="font-bold text-white">{cat.nombre}</h4>
-                    <p className="text-xs text-gray-400">{cat.rubro}</p>
+                    <h4 className="font-bold text-white drop-shadow-md">{cat.nombre}</h4>
+                    <p className="text-xs text-gray-300 drop-shadow-md">{cat.rubro}</p>
                   </div>
                 </div>
-                <button onClick={() => handleEliminarCategoria(cat.id)} className="text-gray-500 hover:text-red-500 hover:bg-red-500/10 p-2 rounded-lg transition-colors cursor-pointer" title="Eliminar Vector">
+                <button onClick={() => handleEliminarCategoria(cat.id)} className="relative z-10 text-gray-500 hover:text-red-500 hover:bg-red-500/20 p-2 rounded-lg transition-colors cursor-pointer" title="Eliminar Vector">
                   🗑️
                 </button>
               </div>
@@ -186,55 +230,29 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* VISTA 3: BASE DE CONOCIMIENTO (NUEVO - OPCIÓN B) */}
+      {/* VISTA 3: BASE DE CONOCIMIENTO */}
       {vistaActiva === 'conocimiento' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-black/40 border border-white/10 rounded-3xl p-6 backdrop-blur-xl h-fit">
             <h3 className="text-xl font-bold text-accent mb-4">Inyectar Nueva Directriz</h3>
-            <p className="text-sm text-gray-400 mb-6">Asigna un consejo o protocolo específico que los usuarios recibirán al interactuar con un Vector.</p>
-            
             <form onSubmit={handleCrearConsejo} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Vector Destino</label>
-                <select 
-                  required
-                  value={nuevoConsejo.categoriaId} 
-                  onChange={e => setNuevoConsejo({...nuevoConsejo, categoriaId: e.target.value})} 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent cursor-pointer"
-                >
+                <select required value={nuevoConsejo.categoriaId} onChange={e => setNuevoConsejo({...nuevoConsejo, categoriaId: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent cursor-pointer">
                   <option value="" className="text-black">-- Selecciona un Vector --</option>
                   {listaCategorias.map(cat => (
-                    <option key={cat.id} value={cat.id} className="text-black">
-                      {cat.icono} {cat.nombre}
-                    </option>
+                    <option key={cat.id} value={cat.id} className="text-black">{cat.nombre}</option>
                   ))}
                 </select>
               </div>
-              
               <div>
                 <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Directriz / Consejo</label>
-                <textarea 
-                  required 
-                  value={nuevoConsejo.texto} 
-                  onChange={e => setNuevoConsejo({...nuevoConsejo, texto: e.target.value})} 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent resize-none h-32" 
-                  placeholder="Ej. Reduce la ingesta de azúcares refinados un 20% durante esta semana para estabilizar los picos de insulina..." 
-                />
+                <textarea required value={nuevoConsejo.texto} onChange={e => setNuevoConsejo({...nuevoConsejo, texto: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent resize-none h-32" placeholder="Ej. Reduce la ingesta de azúcares..." />
               </div>
-              
               <button type="submit" className="w-full bg-accent text-white font-bold rounded-xl px-4 py-3 hover:shadow-[0_0_20px_var(--accent-primary)] transition-all cursor-pointer">
                 + Guardar Directriz
               </button>
             </form>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
-             <h3 className="text-lg font-bold text-gray-200 mb-2">¿Cómo funciona el enrutamiento?</h3>
-             <p className="text-sm text-gray-400 leading-relaxed">
-               Al asignar una directriz a un Vector (por ejemplo, "Optimización Biomecánica"), nuestro motor de base de datos actualizará el nodo correspondiente. 
-               <br/><br/>
-               Cuando un sujeto (Usuario) haga clic en esa tarjeta en su Dashboard personal, el sistema buscará en la Base de Conocimiento y le mostrará este protocolo exacto para que pueda integrarlo a sus Metas Activas.
-             </p>
           </div>
         </div>
       )}

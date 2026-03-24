@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 const FocusTimer = () => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutos en segundos
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [isWorkPhase, setIsWorkPhase] = useState(true);
 
-  // Parámetros del SVG (La Rueda Gradual)
-  const RADIUS = 80;
+  const RADIUS = 85;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
   useEffect(() => {
@@ -18,20 +17,16 @@ const FocusTimer = () => {
         setTimeLeft((time) => time - 1);
       }, 1000);
     } else if (isActive && timeLeft === 0) {
-      // Cambio de fase automático
       const nextPhaseIsWork = !isWorkPhase;
       setIsWorkPhase(nextPhaseIsWork);
       setTimeLeft(nextPhaseIsWork ? 25 * 60 : 5 * 60);
       setIsActive(false); 
       
-      // Notificaciones HCI
       if (nextPhaseIsWork) {
-        toast.success("Descanso finalizado. Reiniciando ciclo de Enfoque Profundo.", { icon: '🧠' });
+        toast.success("Descanso finalizado. Reiniciando ciclo de Enfoque Profundo.");
       } else {
-        toast.success("Ciclo completado. Iniciando fase de Homeostasis (Descanso).", { icon: '🧘' });
+        toast.success("Ciclo completado. Iniciando fase de Homeostasis.");
       }
-
-      // Sonido sutil de alerta
       try {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         audio.volume = 0.3;
@@ -41,19 +36,11 @@ const FocusTimer = () => {
     return () => clearInterval(interval);
   }, [isActive, timeLeft, isWorkPhase]);
 
-  const toggleTimer = () => {
-    setIsActive(!isActive);
-    if (!isActive) {
-      toast.info(`Módulo de Enfoque Activado (${isWorkPhase ? '25 min' : '5 min'})`);
-    } else {
-      toast.info("Ciclo Pausado.");
-    }
-  };
+  const toggleTimer = () => setIsActive(!isActive);
   
   const resetTimer = () => {
     setIsActive(false);
     setTimeLeft(isWorkPhase ? 25 * 60 : 5 * 60);
-    toast.info("Temporizador Reiniciado.");
   };
 
   const switchMode = (mode) => {
@@ -61,94 +48,98 @@ const FocusTimer = () => {
     setIsActive(false);
     setIsWorkPhase(mode === 'work');
     setTimeLeft(mode === 'work' ? 25 * 60 : 5 * 60);
-    toast.info(`Cambiando a modo ${mode === 'work' ? 'Enfoque Profundo' : 'Homeostasis'}.`);
   };
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-  // --- NUEVA LÓGICA DE SVG PARA LA RUEDA GRADUAL ---
   const totalTime = isWorkPhase ? 25 * 60 : 5 * 60;
-  // Calculamos el desplazamiento exacto del borde (stroke-dashoffset)
   const offset = CIRCUMFERENCE - ( (timeLeft / totalTime) * CIRCUMFERENCE );
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-lg w-full transition-all duration-300">
+    <div className="flex flex-col items-center justify-center p-8 rounded-3xl border border-white/5 bg-black/60 backdrop-blur-2xl shadow-2xl w-full transition-all duration-500 h-full relative overflow-hidden">
       
-      {/* Cabecera / Selector de Modo (Botones Blindados) */}
-      <div className="flex gap-2 mb-6 bg-white/5 p-1 rounded-full border border-white/10">
+      <div className={`absolute -top-20 -right-20 w-40 h-40 bg-accent rounded-full mix-blend-screen filter blur-[80px] opacity-20 transition-opacity duration-1000 ${isActive ? 'opacity-40' : 'opacity-10'}`}></div>
+
+      <div className="flex gap-1 mb-8 bg-black/50 p-1.5 rounded-xl border border-white/10 w-full relative z-10">
         <button 
           onClick={() => switchMode('work')}
-          className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer active:scale-95 ${isWorkPhase ? 'bg-accent text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
+          className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all duration-300 cursor-pointer ${isWorkPhase ? 'bg-accent/20 text-accent border border-accent/50 shadow-[0_0_15px_rgba(var(--accent-primary-rgb),0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'}`}
         >
-          🧠 Enfoque
+          Enfoque
         </button>
         <button 
           onClick={() => switchMode('break')}
-          className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer active:scale-95 ${!isWorkPhase ? 'bg-green-500 text-white shadow-md' : 'text-gray-400 hover:text-green-300'}`}
+          className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all duration-300 cursor-pointer ${!isWorkPhase ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'}`}
         >
-          🧘 Descanso
+          Reposo
         </button>
       </div>
 
-      {/* --- DISPLAY DEL RELOJ CON SVG GRADUAL --- */}
-      <div className="relative flex items-center justify-center w-52 h-52 mb-6">
-        
-        {/* Contenedor SVG (Rotado -90deg para que empiece arriba al centro) */}
-        <svg className="absolute inset-0 -rotate-90" viewBox="0 0 180 180">
-          {/* Círculo de Fondo (Track gris sutil) */}
+      <div className="relative flex items-center justify-center w-56 h-56 mb-8 z-10">
+        <svg className="absolute inset-0 -rotate-90" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r={RADIUS} className="stroke-white/5 fill-none" strokeWidth="4" />
           <circle 
-            cx="90" cy="90" r={RADIUS}
-            className="stroke-white/5 fill-none"
-            strokeWidth="6"
-          />
-          
-          {/* Círculo de Progreso Activo (EL MOTOR GRADUAL) */}
-          <circle 
-            cx="90" cy="90" r={RADIUS}
-            className={`fill-none transition-all duration-1000 ease-linear ${isWorkPhase ? 'stroke-accent' : 'stroke-green-500'}`}
-            strokeWidth="6"
-            strokeLinecap="round" // Puntas redondeadas premium
-            style={{
-              strokeDasharray: CIRCUMFERENCE,
-              strokeDashoffset: offset, // Se actualiza suavemente cada segundo
-              filter: `drop-shadow(0 0 4px ${isWorkPhase ? 'var(--accent-primary)' : '#22c55e'})`
-            }}
+            cx="100" cy="100" r={RADIUS}
+            className={`fill-none transition-all duration-1000 ease-linear ${isWorkPhase ? 'stroke-accent' : 'stroke-emerald-400'}`}
+            strokeWidth="6" strokeLinecap="round"
+            style={{ strokeDasharray: CIRCUMFERENCE, strokeDashoffset: offset, filter: `drop-shadow(0 0 8px ${isWorkPhase ? 'var(--accent-primary)' : '#34d399'})` }}
           />
         </svg>
 
-        {/* Círculo decorativo exterior pulsante cuando está activo */}
-        <div className={`absolute inset-0 rounded-full border border-accent/20 transition-all duration-500 ${isActive ? 'scale-105 opacity-60 animate-pulse' : 'scale-100 opacity-20'}`}></div>
-
         <div className="relative z-10 flex flex-col items-center">
-          <span className="text-5xl font-mono font-bold tracking-tighter drop-shadow-md text-white">
+          <span className="text-6xl font-mono font-light tracking-tighter drop-shadow-lg text-white">
             {timeString}
           </span>
-          <span className={`text-xs tracking-widest uppercase mt-2 font-medium ${isWorkPhase ? 'text-accent' : 'text-green-400'}`}>
-            {isWorkPhase ? 'Ciclo Activo' : 'Homeostasis'}
+          <span className={`text-[10px] tracking-[0.3em] uppercase mt-3 font-bold ${isWorkPhase ? 'text-accent/80' : 'text-emerald-400/80'}`}>
+            {isActive ? 'En Progreso' : 'En Espera'}
           </span>
         </div>
       </div>
 
-      {/* Controles Principales (Botones Blindados) */}
-      <div className="flex items-center gap-4">
+      {/* --- NUEVOS CONTROLES (NODOS DE ENERGÍA SVG) --- */}
+      <div className="flex items-center gap-6 z-10 mt-2">
+        
+        {/* BOTÓN CENTRAL: INICIAR / PAUSAR */}
         <button 
           onClick={toggleTimer}
-          className={`flex items-center justify-center w-16 h-16 rounded-full text-3xl transition-all duration-200 shadow-xl cursor-pointer active:scale-95 hover:shadow-accent/40 ${isActive ? 'bg-white/10 text-white hover:bg-white/20 border border-white/10' : 'bg-accent text-white hover:shadow-[0_0_15px_var(--accent-primary)]'}`}
-          title={isActive ? "Pausar" : "Iniciar Enfoque Profundo"}
+          className={`relative group flex items-center justify-center w-20 h-20 rounded-full transition-all duration-500 cursor-pointer active:scale-90 ${
+            isActive 
+              ? 'bg-black/80 border border-accent/50 text-accent shadow-[inset_0_0_20px_rgba(var(--accent-primary-rgb),0.2)]' 
+              : 'bg-accent/20 border-2 border-accent text-white backdrop-blur-md hover:bg-accent hover:shadow-[0_0_30px_var(--accent-primary)]'
+          }`}
         >
-          {isActive ? '⏸' : '▶'}
+          {/* Anillos de energía decorativos */}
+          <div className={`absolute inset-0 rounded-full border border-accent transition-all duration-1000 ${isActive ? 'animate-ping opacity-30 scale-[1.3]' : 'group-hover:scale-[1.15] opacity-0 group-hover:opacity-50'}`}></div>
+          <div className={`absolute inset-0 rounded-full border border-white/30 transition-all duration-1000 ${isActive ? 'animate-spin opacity-50 border-t-accent' : 'opacity-0'}`}></div>
+
+          {isActive ? (
+            // Icono de Pausa (SVG Premium)
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 drop-shadow-[0_0_8px_var(--accent-primary)]">
+              <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
+            </svg>
+          ) : (
+            // Icono de Play (SVG Premium)
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9 ml-1.5 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">
+              <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+            </svg>
+          )}
         </button>
+        
+        {/* BOTÓN SECUNDARIO: REINICIAR */}
         <button 
           onClick={resetTimer}
-          className="flex items-center justify-center w-11 h-11 rounded-full bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20 border border-white/5 transition-all duration-200 cursor-pointer active:scale-95"
-          title="Reiniciar Ciclo Actual"
+          className="relative flex items-center justify-center w-12 h-12 rounded-full bg-black/40 text-gray-400 hover:text-white border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all duration-300 cursor-pointer active:scale-90 group"
+          title="Reiniciar Ciclo"
         >
-          🔄
+          {/* Icono de Reset (SVG Premium) */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
         </button>
-      </div>
 
+      </div>
     </div>
   );
 };
