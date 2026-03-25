@@ -11,7 +11,19 @@
   background-color: var(--bg-base);
   color: var(--text-main);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  
+  /* --- LA MAGIA DEL ESPACIADO (AIRE) --- */
+  padding: 0.5rem; /* Separamos los elementos del borde del cristal */
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem; /* Separación sutil entre cada botón de tema */
+}
+
+/* Ajuste fino para los botones dentro del menú desplegable */
+.dropdown-menu button {
+  border-radius: 0.5rem; /* Bordes suaves para que combinen con el contenedor */
+  padding: 0.5rem 1rem !important; /* Aseguramos que el texto respire bien */
 }
 
 .btn-icon {
