@@ -6,6 +6,13 @@
       "email": "admin@physis.com",
       "password": "admin",
       "rol": "admin"
+    },
+    {
+      "id": "-X8CGc7Gx2k",
+      "nombre": "Aaron",
+      "email": "quirosfwd@gmail.com",
+      "password": "Loscatos",
+      "rol": "usuario"
     }
   ],
   "categorias": [
@@ -64,5 +71,23 @@
       "texto": "La disciplina es biología aplicada. Ancla tu nuevo hábito a una acción que ya realices inconscientemente todos los días."
     }
   ],
-  "metas_usuario": []
+  "metas_usuario": [
+    {
+      "id": "18ey0u5-F6Q",
+      "userId": "-X8CGc7Gx2k",
+      "texto": "Tu sistema muscular requiere tensión progresiva. Aumenta la carga un 5% en tu próximo ciclo de entrenamiento.",
+      "rubro": "Fitness",
+      "icono": "muscle",
+      "completada": true
+    },
+    {
+      "id": "tG40yjzfw3U",
+      "userId": "-X8CGc7Gx2k",
+      "texto": "La neuroplasticidad se maximiza en la primera hora tras despertar. Consume 20 páginas de material de alta densidad.",
+      "rubro": "Educación",
+      "icono": "brain",
+      "completada": true
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
