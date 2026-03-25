@@ -27,28 +27,32 @@
       "id": "1",
       "nombre": "Optimización Biomecánica",
       "rubro": "Fitness",
-      "icono": "💪",
+      "icono": "muscle",
+      "imagen": null,
       "descripcion": "Tensión progresiva y adaptación muscular."
     },
     {
       "id": "2",
       "nombre": "Expansión Cognitiva",
       "rubro": "Educación",
-      "icono": "🧠",
+      "icono": "brain",
+      "imagen": null,
       "descripcion": "Neuroplasticidad y absorción de datos."
     },
     {
       "id": "3",
       "nombre": "Homeostasis",
       "rubro": "Descanso",
-      "icono": "🧘",
+      "icono": "zen",
+      "imagen": null,
       "descripcion": "Recuperación y equilibrio del sistema."
     },
     {
       "id": "4",
       "nombre": "Sistemas de Rutina",
       "rubro": "Hábitos",
-      "icono": "⚙️",
+      "icono": "gear",
+      "imagen": null,
       "descripcion": "Automatización de procesos diarios."
     }
   ],
