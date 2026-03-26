@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import '../styles/UserProfilePanel.css';
 import { useAuth } from '../context/AuthContext';
-import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts';
+import { RadialBarChart, RadialBar, ResponsiveContainer } from  'recharts';
+
 
 const UserProfilePanel = ({ totalTasks, completedTasks }) => {
   const { usuario, logout, actualizarPerfil, eliminarCuenta } = useAuth();
