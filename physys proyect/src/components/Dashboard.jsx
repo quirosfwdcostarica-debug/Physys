@@ -1,204 +1,126 @@
 // src/components/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  obtenerCategoriasAPI, 
-  obtenerConsejoPorCategoriaAPI,
-  obtenerMetasAPI,
-  agregarMetaAPI,
-  actualizarMetaAPI,
-  eliminarMetaAPI
-} from '../services/Fetch';
-import { useAuth } from '../context/AuthContext';
-import { toast } from 'sonner';
 import UserProfilePanel from './UserProfilePanel';
 import FocusTimer from './FocusTimer';
+import DiagnosticForm from './DiagnosticForm';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const { usuario } = useAuth();
-  const [categorias, setCategorias] = useState([]);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
-  const [consejoActual, setConsejoActual] = useState(null);
-  const [metas, setMetas] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [tareas, setTareas] = useState([]);
+  const [areaElegida, setAreaElegida] = useState(null);
+  const [tienePlan, setTienePlan] = useState(false);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const [dataCategorias, dataMetas] = await Promise.all([
-          obtenerCategoriasAPI(),
-          obtenerMetasAPI(usuario.id) 
-        ]);
-        setCategorias(dataCategorias);
-        setMetas(dataMetas);
-      } catch (error) {
-        toast.error("Error al sincronizar con la base de datos.");
-      } finally {
-        setCargando(false);
-      }
-    };
-    if(usuario) cargarDatos();
-  }, [usuario]);
+    const planGuardado = localStorage.getItem('physis_plan_activo');
+    const areaGuardada = localStorage.getItem('physis_area_activa');
+    
+    if (planGuardado && areaGuardada) {
+      setTareas(JSON.parse(planGuardado));
+      setAreaElegida(JSON.parse(areaGuardada));
+      setTienePlan(true);
+    }
+  }, []);
 
-  const totalTareas = metas.length;
-  const tareasCompletadas = metas.filter(meta => meta.completada).length;
+  const handlePlanGenerado = (nuevasTareas, areaObj) => {
+    setTareas(nuevasTareas);
+    setAreaElegida(areaObj);
+    setTienePlan(true);
+    
+    localStorage.setItem('physis_plan_activo', JSON.stringify(nuevasTareas));
+    localStorage.setItem('physis_area_activa', JSON.stringify(areaObj));
+    toast.success(`Plan ${areaObj.nombre} activado con éxito.`);
+  };
 
-  // Función para determinar qué imagen mostrar
-  const getBackgroundImage = (cat) => {
-    if (cat.imagen) return cat.imagen; // Si el admin sube una propia
-    // Imágenes estéticas por defecto basadas en la clave
-    switch (cat.icono) {
-      case 'muscle': return 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop';
-      case 'brain': return 'https://images.unsplash.com/photo-1559757175-5700dde675bc?q=80&w=1470&auto=format&fit=crop';
-      case 'zen': return 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1470&auto=format&fit=crop';
-      case 'gear': return 'https://images.unsplash.com/photo-1635048424329-a9bfb104d581?q=80&w=1470&auto=format&fit=crop';
-      default: return 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1364&auto=format&fit=crop';
+  const toggleTarea = (id) => {
+    const tareasActualizadas = tareas.map(t => {
+      if(t.id === id) return { ...t, completada: !t.completada };
+      return t;
+    });
+    setTareas(tareasActualizadas);
+    localStorage.setItem('physis_plan_activo', JSON.stringify(tareasActualizadas));
+  };
+
+  // NUEVO: Función para purgar el plan viejo y permitir jalar la info nueva del Admin
+  const resetearPlan = () => {
+    if(window.confirm("¿Deseas purgar tu protocolo actual para sincronizar los nuevos datos del sistema?")) {
+      localStorage.removeItem('physis_plan_activo');
+      localStorage.removeItem('physis_area_activa');
+      setTienePlan(false);
+      setTareas([]);
+      setAreaElegida(null);
+      toast.info("Protocolo purgado. Iniciando escaneo en vivo...");
     }
   };
 
-  const manejarSeleccion = async (categoria) => {
-    setCategoriaSeleccionada(categoria);
-    setConsejoActual(null); 
-    try {
-      const consejo = await obtenerConsejoPorCategoriaAPI(categoria.id);
-      if (consejo && consejo.texto) {
-        setConsejoActual(consejo);
-        toast.success(`Protocolo de ${categoria.nombre} cargado.`);
-      } else {
-        setConsejoActual({ texto: "Sin directrices detectadas en el sistema." });
-      }
-    } catch (error) {
-      toast.error("Error al obtener la directriz.");
-    }
-  };
+  const completadas = tareas.filter(t => t.completada).length;
+  const totales = tareas.length;
 
-  const agregarProtocolo = async () => {
-    if (!consejoActual || consejoActual.texto.includes("Sin directrices")) return;
-    const nuevaMeta = {
-      id: crypto.randomUUID(), 
-      userId: usuario.id,
-      texto: consejoActual.texto,
-      rubro: categoriaSeleccionada.rubro,
-      icono: categoriaSeleccionada.icono, // Guardamos la clave
-      completada: false
-    };
-    try {
-      const metaGuardada = await agregarMetaAPI(nuevaMeta);
-      setMetas([...metas, metaGuardada]);
-      toast.success("Protocolo integrado a tus Metas Activas.");
-    } catch (error) {
-      toast.error("No se pudo guardar el protocolo.");
-    }
-  };
-
-  const toggleMeta = async (meta) => {
-    try {
-      const metaActualizada = await actualizarMetaAPI(meta.id, !meta.completada);
-      setMetas(metas.map(m => m.id === meta.id ? metaActualizada : m));
-      if (!meta.completada) toast.success("¡Protocolo cumplido!");
-    } catch (error) { toast.error("Error al actualizar."); }
-  };
-
-  const borrarMeta = async (id) => {
-    try {
-      await eliminarMetaAPI(id);
-      setMetas(metas.filter(m => m.id !== id));
-      toast.info("Protocolo descartado.");
-    } catch (error) { toast.error("Error al eliminar."); }
-  };
-
-  if (cargando) return <div className="h-64 flex justify-center items-center"><p className="text-xl animate-pulse text-accent">Sincronizando Módulos Visuales...</p></div>;
+  if (!tienePlan) {
+    return (
+      <div className="w-full max-w-6xl mx-auto pb-24">
+        <DiagnosticForm onPlanGenerado={handlePlanGenerado} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto pb-24 animate-in fade-in duration-700">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-        <div className="lg:col-span-2">
-          <h2 className="text-2xl font-bold mb-4 text-accent">Nivel de Optimización Personal</h2>
-          <UserProfilePanel totalTasks={totalTareas} completedTasks={tareasCompletadas} />
-        </div>
-        <div className="lg:col-span-1">
-          <h2 className="text-2xl font-bold mb-4 text-accent text-center lg:text-left">Módulo de Enfoque</h2>
-          <FocusTimer />
-        </div>
-      </div>
       
-      <h2 className="text-2xl font-bold mb-6 text-accent">Vectores de Optimización</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {categorias.map((cat) => (
-          <button 
-            key={cat.id} 
-            onClick={() => manejarSeleccion(cat)} 
-            className={`relative overflow-hidden flex flex-col items-center justify-end p-6 rounded-3xl border transition-all duration-500 text-left w-full h-56 cursor-pointer group
-              ${categoriaSeleccionada?.id === cat.id 
-                ? 'border-accent shadow-[0_0_25px_rgba(var(--accent-primary-rgb),0.5)] transform scale-105 ring-2 ring-accent/50' 
-                : 'border-white/10 hover:border-accent/40 hover:-translate-y-1 shadow-lg'
-              }`}
-          >
-            {/* Imagen de Fondo Rica */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-90"
-              style={{ backgroundImage: `url(${getBackgroundImage(cat)})` }}
-            />
-            {/* Gradiente para que el texto sea legible */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+      <UserProfilePanel totalTasks={totales} completedTasks={completadas} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* COLUMNA IZQUIERDA: LISTA DE TAREAS */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-4">
+            <h2 className="text-2xl font-bold text-accent flex items-center gap-3">
+              <span className="text-3xl bg-white/5 p-2 rounded-xl">{areaElegida?.icono || '⚡'}</span>
+              Protocolo: {areaElegida?.nombre || 'Optimización'}
+            </h2>
             
-            {/* Contenido (Texto) */}
-            <div className="relative z-10 w-full flex flex-col items-center translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-              <h3 className="text-lg font-bold mb-1 w-full text-center tracking-tight text-white drop-shadow-md">{cat.nombre}</h3>
-              <p className="text-xs text-gray-300 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 line-clamp-2">{cat.descripcion}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {categoriaSeleccionada && (
-        <div className="mt-8 p-8 rounded-3xl border border-accent/30 bg-black/60 backdrop-blur-2xl transition-all duration-500 animate-in slide-in-from-bottom-4 shadow-2xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-bold text-white flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-accent animate-pulse shadow-[0_0_10px_var(--accent-primary)]"></span>
-              Análisis: <span className="text-accent">{categoriaSeleccionada.rubro}</span>
-            </h3>
-            {consejoActual && !consejoActual.texto.includes("Sin directrices") && (
-              <button onClick={agregarProtocolo} className="bg-accent/20 border border-accent/50 text-accent px-5 py-2.5 rounded-xl font-bold hover:bg-accent hover:text-white transition-all cursor-pointer shadow-[0_0_15px_rgba(var(--accent-primary-rgb),0.2)] hover:shadow-[0_0_25px_rgba(var(--accent-primary-rgb),0.6)]">
-                + Integrar Protocolo
-              </button>
-            )}
+            {/* NUEVO BOTÓN: Permite al usuario refrescar su plan */}
+            <button 
+              onClick={resetearPlan} 
+              className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+              title="Sincronizar nuevos datos del Administrador"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+              Sincronizar
+            </button>
           </div>
-          <div className="bg-white/5 p-6 rounded-2xl border border-white/10 relative overflow-hidden">
-            <div className="absolute left-0 top-0 w-1.5 h-full bg-gradient-to-b from-accent to-transparent"></div>
-            {consejoActual ? (
-              <p className="text-lg leading-relaxed text-gray-200 ml-2">
-                <span className="font-bold text-accent mr-2 uppercase tracking-widest text-sm">Directriz:</span>
-                {consejoActual.texto}
-              </p>
-            ) : (<p className="text-lg text-gray-400 animate-pulse ml-2">Analizando variables bio-métricas...</p>)}
-          </div>
-        </div>
-      )}
-
-      {metas.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6 text-accent">Protocolos Activos</h2>
+          
           <div className="space-y-4">
-            {metas.map((meta) => (
-              <div key={meta.id} className={`flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md shadow-lg ${meta.completada ? 'bg-green-900/10 border-green-500/30' : 'bg-black/50 border-white/10 hover:border-accent/40'}`}>
-                <div className="flex items-center gap-5">
-                  {/* Custom Checkbox Bio-Tech */}
-                  <div className="relative flex items-center justify-center">
-                    <input type="checkbox" checked={meta.completada} onChange={() => toggleMeta(meta)} className="peer relative appearance-none w-6 h-6 border-2 border-white/30 rounded-full bg-transparent cursor-pointer checked:border-accent checked:bg-accent/20 transition-all" />
-                    <span className="absolute text-accent opacity-0 peer-checked:opacity-100 pointer-events-none text-sm font-bold">✓</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-accent/80 mb-1">{meta.rubro}</span>
-                    <span className={`text-lg transition-all duration-300 ${meta.completada ? 'line-through text-gray-600' : 'text-gray-100'}`}>{meta.texto}</span>
-                  </div>
+            {tareas.map((tarea, index) => (
+              <div 
+                key={tarea.id} 
+                onClick={() => toggleTarea(tarea.id)}
+                className={`p-4 md:p-5 rounded-2xl border transition-all cursor-pointer flex gap-4 items-center group shadow-lg ${tarea.completada ? 'bg-accent/10 border-accent/40 opacity-60' : 'bg-black/40 border-white/10 hover:border-accent hover:bg-white/5'}`}
+              >
+                {/* CHECKBOX */}
+                <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${tarea.completada ? 'border-accent bg-accent text-white shadow-[0_0_10px_var(--accent-primary)]' : 'border-gray-500 group-hover:border-accent'}`}>
+                  {tarea.completada && <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                 </div>
-                <button onClick={() => borrarMeta(meta.id)} className="text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors cursor-pointer">✖</button>
+                
+                {/* TEXTO */}
+                <div className="flex-1">
+                  <p className="text-[10px] md:text-xs text-accent font-bold uppercase tracking-widest mb-1">
+                    Directriz {index + 1}
+                  </p>
+                  <p className={`text-sm md:text-base transition-colors ${tarea.completada ? 'text-gray-500 line-through' : 'text-gray-200 group-hover:text-white'}`}>
+                    {tarea.texto}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
         </div>
-      )}
+
+        {/* COLUMNA DERECHA: RELOJ */}
+        <div className="lg:col-span-1">
+          <FocusTimer />
+        </div>
+
+      </div>
     </div>
   );
 };
