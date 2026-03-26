@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';
 import BiologicalBackground from './components/BiologicalBackground';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
-import AdminDashboard from './components/AdminDashboard'; // Importamos el panel
+import AdminDashboard from './components/AdminDashboard'; 
 import { useAuth } from './context/AuthContext';
 
 const App = () => {
@@ -20,38 +20,34 @@ const App = () => {
     );
   }
 
-  // --- EL SEMÁFORO DE ARQUITECTO (OPCIÓN A) ---
-  // Función para decidir qué renderizar según el estado y rol
   const renderContenidoPrincipal = () => {
-    if (!usuario) {
-      return <Auth />; // Si no hay usuario, Login.
-    }
-    
-    if (usuario.rol === 'admin') {
-      return <AdminDashboard />; // Si es admin, Centro de Comando.
-    }
-    
-    return <Dashboard />; // Si es usuario normal, Panel de Optimización.
+    if (!usuario) return <Auth />; 
+    if (usuario.rol === 'admin') return <AdminDashboard />; 
+    return <Dashboard />; 
   };
 
   return (
-    <div className="min-h-screen font-sans relative overflow-hidden text-white">
+    <div className="min-h-screen font-sans relative overflow-x-hidden text-white w-full">
       <BiologicalBackground />
       <Navbar />
 
-      <main className="p-8 pt-32 relative z-10">
-        <div className="mb-12 text-center md:text-left max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-accent mb-4 tracking-tight drop-shadow-md">Physis</h1>
-          <p className="text-xl md:text-2xl font-light opacity-90">Sistema de Optimización del Potencial Humano.</p>
+      {/* AJUSTE MÓVIL: Padding reducido en celulares (p-4 pt-24) y amplio en PC (md:p-8 md:pt-32) */}
+      <main className="p-4 pt-24 md:p-8 md:pt-32 relative z-10 w-full max-w-[100vw] overflow-x-hidden">
+        <div className="mb-8 md:mb-12 text-center md:text-left max-w-6xl mx-auto">
+          {/* AJUSTE MÓVIL: Títulos fluidos (text-4xl a text-6xl) */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-accent mb-2 md:mb-4 tracking-tight drop-shadow-md">
+            Physis
+          </h1>
+          <p className="text-base md:text-xl lg:text-2xl font-light opacity-90 px-2 md:px-0">
+            Sistema de Optimización del Potencial Humano.
+          </p>
         </div>
 
-        {/* Renderizamos dinámicamente el contenido */}
         {renderContenidoPrincipal()}
 
       </main>
 
       <Toaster position="top-right" richColors />
-      {/* El Asistente IA solo es para usuarios normales (no para admins) */}
       {usuario && usuario.rol !== 'admin' && <PhysisAssistant />}
     </div>
   );
