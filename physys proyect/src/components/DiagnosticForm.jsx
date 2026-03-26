@@ -7,12 +7,12 @@ const DiagnosticForm = ({ onPlanGenerado }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [edadCustom, setEdadCustom] = useState('');
   
-  // NUEVO: Estados para guardar los datos del Admin
+  // Estados para descargar la base de datos del Admin
   const [areasAdmin, setAreasAdmin] = useState([]);
   const [tareasAdmin, setTareasAdmin] = useState([]);
   
   const [respuestas, setRespuestas] = useState({
-    areaObj: null, // Guardaremos el objeto completo del área seleccionada
+    areaObj: null,
     genero: '',
     edad: '',
     fechaLimite: ''
@@ -23,10 +23,16 @@ const DiagnosticForm = ({ onPlanGenerado }) => {
   const maxDate = new Date(hoy); maxDate.setMonth(maxDate.getMonth() + 3);
   const formatearFecha = (fecha) => fecha.toISOString().split('T')[0];
 
-  // NUEVO: Cargar las áreas y tareas creadas por el Admin
+  // CONEXIÓN VITAL AL SERVIDOR DEL ADMIN (Puerto 3001)
   useEffect(() => {
-    fetch('http://localhost:3001/categorias').then(res => res.json()).then(data => setAreasAdmin(data));
-    fetch('http://localhost:3001/consejos').then(res => res.json()).then(data => setTareasAdmin(data));
+    fetch('http://localhost:3001/categorias')
+      .then(res => res.json())
+      .then(data => setAreasAdmin(data))
+      .catch(() => console.error("Asegúrate de que json-server esté corriendo en el puerto 3001"));
+      
+    fetch('http://localhost:3001/consejos')
+      .then(res => res.json())
+      .then(data => setTareasAdmin(data));
   }, []);
 
   const seleccionarArea = (areaObj) => { setRespuestas({ ...respuestas, areaObj }); setPaso(2); };
@@ -52,15 +58,15 @@ const DiagnosticForm = ({ onPlanGenerado }) => {
   };
 
   const generarPrograma = (datos) => {
-    // MAGIA: Filtramos las tareas que el Admin creó específicamente para el Área seleccionada
+    // MAGIA: Filtramos las tareas que el Admin creó para esta área exacta
     const tareasDelArea = tareasAdmin.filter(t => t.categoriaId === datos.areaObj.id);
     
-    // Si el Admin olvidó ponerle tareas, le ponemos unas por defecto para que no se rompa
+    // Si el Admin olvidó ponerle tareas, le damos unas por defecto para no romper la app
     const planFinal = tareasDelArea.length > 0 
       ? tareasDelArea.map(t => ({ id: t.id, texto: t.texto, completada: false }))
-      : [{ id: '1', texto: "Beber agua", completada: false }, { id: '2', texto: "Meditar", completada: false }];
+      : [{ id: '1', texto: "Directriz pendiente de asignación por los Arquitectos.", completada: false }];
 
-    // Le enviamos al Dashboard el Plan y toda la información del Área (incluyendo su IMAGEN)
+    // Enviamos el plan al Dashboard principal
     onPlanGenerado(planFinal, datos.areaObj);
   };
 
@@ -88,19 +94,21 @@ const DiagnosticForm = ({ onPlanGenerado }) => {
               <div className="bg-accent h-full transition-all duration-500" style={{ width: `${(paso / 4) * 100}%` }}></div>
             </div>
 
-            {/* PASO 1: AHORA MUESTRA LAS ÁREAS REALES DEL ADMIN */}
+            {/* PASO 1: ÁREAS EXTRAÍDAS DEL ADMIN */}
             {paso === 1 && (
               <div className="animate-in slide-in-from-right-8 duration-500">
                 <h2 className="text-3xl font-black text-white mb-2">Fase 1: Enfoque</h2>
                 <p className="text-gray-400 mb-8">¿Qué vector de tu vida requiere re-estructuración inmediata?</p>
                 
                 {areasAdmin.length === 0 ? (
-                  <p className="text-accent">Esperando que el Admin cree áreas de diagnóstico...</p>
+                  <p className="text-accent bg-accent/10 p-4 rounded-xl border border-accent/20">
+                    Esperando que los Arquitectos inyecten vectores en la red...
+                  </p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {areasAdmin.map(area => (
                       <button key={area.id} onClick={() => seleccionarArea(area)} className="p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-accent hover:bg-accent/10 transition-all text-lg font-bold text-gray-200 cursor-pointer flex flex-col items-center gap-2">
-                        <span className="text-2xl">{area.icono}</span>
+                        <span className="text-3xl">{area.icono}</span>
                         {area.nombre}
                       </button>
                     ))}

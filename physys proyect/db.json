@@ -6,6 +6,13 @@
       "email": "admin@physis.com",
       "password": "admin",
       "rol": "admin"
+    },
+    {
+      "id": "jlrqsWuruao",
+      "nombre": "Aaron",
+      "email": "quirosfwd@gmail.com",
+      "password": "Loscatos",
+      "rol": "usuario"
     }
   ],
   "categorias": [
@@ -64,5 +71,6 @@
       "texto": "La disciplina es biología aplicada. Ancla tu nuevo hábito a una acción que ya realices inconscientemente todos los días."
     }
   ],
-  "metas_usuario": []
+  "metas_usuario": [],
+  "$schema": "./node_modules/json-server/schema.json"
 }

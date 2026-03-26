@@ -40,6 +40,18 @@ const Dashboard = () => {
     localStorage.setItem('physis_plan_activo', JSON.stringify(tareasActualizadas));
   };
 
+  // NUEVO: Función para purgar el plan viejo y permitir jalar la info nueva del Admin
+  const resetearPlan = () => {
+    if(window.confirm("¿Deseas purgar tu protocolo actual para sincronizar los nuevos datos del sistema?")) {
+      localStorage.removeItem('physis_plan_activo');
+      localStorage.removeItem('physis_area_activa');
+      setTienePlan(false);
+      setTareas([]);
+      setAreaElegida(null);
+      toast.info("Protocolo purgado. Iniciando escaneo en vivo...");
+    }
+  };
+
   const completadas = tareas.filter(t => t.completada).length;
   const totales = tareas.length;
 
@@ -65,6 +77,16 @@ const Dashboard = () => {
               <span className="text-3xl bg-white/5 p-2 rounded-xl">{areaElegida?.icono || '⚡'}</span>
               Protocolo: {areaElegida?.nombre || 'Optimización'}
             </h2>
+            
+            {/* NUEVO BOTÓN: Permite al usuario refrescar su plan */}
+            <button 
+              onClick={resetearPlan} 
+              className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+              title="Sincronizar nuevos datos del Administrador"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+              Sincronizar
+            </button>
           </div>
           
           <div className="space-y-4">
