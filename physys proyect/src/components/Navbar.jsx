@@ -1,12 +1,11 @@
+// src/components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
-// ¡Importamos los estilos separados!
 import '../styles/Navbar.css';
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   
-  // --- INICIO DE LA MAGIA DE MEMORIA (LOCALSTORAGE) ---
   const [activeTheme, setActiveTheme] = useState(() => {
     const savedTheme = localStorage.getItem('physis_theme');
     return savedTheme ? savedTheme : 'Orgánico';
@@ -21,7 +20,6 @@ const Navbar = () => {
     const savedOpacity = localStorage.getItem('physis_glassOpacity');
     return savedOpacity !== null ? Number(savedOpacity) : 40;
   });
-  // --- FIN DE LA MAGIA DE MEMORIA ---
   
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -42,43 +40,37 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // 1. INYECTAR EL TEMA GLOBAL EN TODA LA PÁGINA Y GUARDARLO
   useEffect(() => {
     document.body.setAttribute('data-theme', activeTheme);
-    localStorage.setItem('physis_theme', activeTheme); // Guardamos en memoria
+    localStorage.setItem('physis_theme', activeTheme);
   }, [activeTheme]);
 
-  // 2. INYECTAR EL MODO OSCURO GLOBAL Y GUARDARLO
   useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
     } else {
       document.body.classList.remove('dark-mode');
     }
-    localStorage.setItem('physis_darkMode', JSON.stringify(isDarkMode)); // Guardamos en memoria
+    localStorage.setItem('physis_darkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
 
-  // 3. ACTUALIZAR LA OPACIDAD GLOBAL (CSS Variable) Y GUARDARLA
   useEffect(() => {
     document.documentElement.style.setProperty('--glass-opacity', glassOpacity / 100);
-    localStorage.setItem('physis_glassOpacity', glassOpacity.toString()); // Guardamos en memoria
+    localStorage.setItem('physis_glassOpacity', glassOpacity.toString());
   }, [glassOpacity]);
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-40 flex h-20 items-center justify-between px-8 transition-transform duration-300 ease-in-out navbar-glass ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-      
       <div className="flex items-center gap-2">
         <span className="text-2xl font-bold tracking-tighter cursor-pointer">
           PHY<span className="text-accent">SIS</span>
         </span>
       </div>
-
       <div className="flex items-center gap-4 relative">
         <div className="relative">
           <button onClick={() => { setShowThemeMenu(!showThemeMenu); setShowSettings(false); }} className="rounded-full px-4 py-2 text-sm font-medium transition-colors shadow-sm cursor-pointer btn-icon">
             Tema: {activeTheme}
           </button>
-          
           {showThemeMenu && (
             <div className="absolute top-12 left-0 w-40 rounded-xl overflow-hidden backdrop-blur-md dropdown-menu">
               {themes.map(theme => (
@@ -89,16 +81,13 @@ const Navbar = () => {
             </div>
           )}
         </div>
-        
         <button onClick={() => setIsDarkMode(!isDarkMode)} className="flex h-10 w-10 items-center justify-center rounded-full transition-colors shadow-sm cursor-pointer btn-icon">
           {isDarkMode ? '🌞' : '🌙'}
         </button>
-
         <div className="relative">
           <button onClick={() => { setShowSettings(!showSettings); setShowThemeMenu(false); }} className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm cursor-pointer bg-accent">
             ⚙️
           </button>
-          
           {showSettings && (
             <div className="absolute top-12 right-0 w-48 p-4 rounded-xl backdrop-blur-md dropdown-menu">
               <p className="text-xs font-semibold mb-2 uppercase tracking-wider text-accent">Opacidad Glass</p>

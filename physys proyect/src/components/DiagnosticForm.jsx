@@ -25,8 +25,8 @@ const DiagnosticForm = ({ onPlanGenerado }) => {
 
   // NUEVO: Cargar las áreas y tareas creadas por el Admin
   useEffect(() => {
-    fetch('http://localhost:3000/categorias').then(res => res.json()).then(data => setAreasAdmin(data));
-    fetch('http://localhost:3000/consejos').then(res => res.json()).then(data => setTareasAdmin(data));
+    fetch('http://localhost:3001/categorias').then(res => res.json()).then(data => setAreasAdmin(data));
+    fetch('http://localhost:3001/consejos').then(res => res.json()).then(data => setTareasAdmin(data));
   }, []);
 
   const seleccionarArea = (areaObj) => { setRespuestas({ ...respuestas, areaObj }); setPaso(2); };

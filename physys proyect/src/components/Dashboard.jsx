@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [tareas, setTareas] = useState([]);
-  const [areaElegida, setAreaElegida] = useState(null); // Aquí guardamos el área con su imagen
+  const [areaElegida, setAreaElegida] = useState(null);
   const [tienePlan, setTienePlan] = useState(false);
 
   useEffect(() => {
@@ -21,7 +21,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Ahora recibimos las tareas y el objeto completo del Área (con la imagen de Admin)
   const handlePlanGenerado = (nuevasTareas, areaObj) => {
     setTareas(nuevasTareas);
     setAreaElegida(areaObj);
@@ -59,11 +58,12 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* COLUMNA IZQUIERDA: LISTA DE TAREAS + IMAGEN */}
+        {/* COLUMNA IZQUIERDA: LISTA DE TAREAS */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-4">
-            <h2 className="text-2xl font-bold text-accent flex items-center gap-2">
-              Protocolo: {areaElegida?.nombre || 'Optimización'} {areaElegida?.icono}
+            <h2 className="text-2xl font-bold text-accent flex items-center gap-3">
+              <span className="text-3xl bg-white/5 p-2 rounded-xl">{areaElegida?.icono || '⚡'}</span>
+              Protocolo: {areaElegida?.nombre || 'Optimización'}
             </h2>
           </div>
           
@@ -80,7 +80,7 @@ const Dashboard = () => {
                 </div>
                 
                 {/* TEXTO */}
-                <div className="flex-1 pr-2">
+                <div className="flex-1">
                   <p className="text-[10px] md:text-xs text-accent font-bold uppercase tracking-widest mb-1">
                     Directriz {index + 1}
                   </p>
@@ -88,17 +88,6 @@ const Dashboard = () => {
                     {tarea.texto}
                   </p>
                 </div>
-
-                {/* IMAGEN DEL ADMIN AQUÍ EN EL DASHBOARD */}
-                {areaElegida?.imagen && (
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border border-white/10 shrink-0 opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all hidden sm:block shadow-md">
-                    <img 
-                      src={areaElegida.imagen} 
-                      alt={areaElegida.nombre} 
-                      className={`w-full h-full object-cover transition-all duration-500 ${tarea.completada ? 'grayscale' : ''}`} 
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>
