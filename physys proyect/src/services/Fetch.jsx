@@ -116,3 +116,30 @@ export const agregarConsejoAPI = async (consejo) => {
   if (!respuesta.ok) throw new Error("Fallo al inyectar la directriz.");
   return await respuesta.json();
 };
+
+// --- NUEVO: TRANSMISIÓN DE SEÑALES (FEEDBACK) ---
+export const enviarFeedbackAPI = async (mensaje) => {
+  const respuesta = await fetch(`${BASE_URL}/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: crypto.randomUUID(),
+      mensaje: mensaje,
+      fecha: new Date().toISOString(),
+      estado: 'nuevo'
+    })
+  });
+  if (!respuesta.ok) throw new Error("No se pudo transmitir la señal.");
+  return await respuesta.json();
+};
+// --- LECTURA Y PURGA DE SEÑALES (ADMIN) ---
+export const obtenerFeedbackAPI = async () => {
+  const respuesta = await fetch(`${BASE_URL}/feedback`);
+  return await respuesta.json();
+};
+
+export const eliminarFeedbackAPI = async (id) => {
+  const respuesta = await fetch(`${BASE_URL}/feedback/${id}`, { method: 'DELETE' });
+  if (!respuesta.ok) throw new Error("Fallo al eliminar la señal.");
+  return true;
+};
