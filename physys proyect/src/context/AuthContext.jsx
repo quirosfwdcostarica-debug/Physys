@@ -12,11 +12,19 @@ export const AuthProvider = ({ children }) => {
   const [cargandoAuth, setCargandoAuth] = useState(true);
 
   useEffect(() => {
-    const sesionGuardada = localStorage.getItem('physis_session');
-    if (sesionGuardada) {
-      setUsuario(JSON.parse(sesionGuardada));
+    // BLINDAJE: Si el LocalStorage está corrupto, lo atrapamos y no dejamos que congele la app.
+    try {
+      const sesionGuardada = localStorage.getItem('physis_session');
+      if (sesionGuardada) {
+        setUsuario(JSON.parse(sesionGuardada));
+      }
+    } catch (error) {
+      console.error("Datos de sesión corruptos detectados. Limpiando caché neuronal...");
+      localStorage.removeItem('physis_session'); // Borramos la basura
+    } finally {
+      // Esta línea SIEMPRE se ejecutará ahora, liberándote de la pantalla de carga
+      setCargandoAuth(false);
     }
-    setCargandoAuth(false);
   }, []);
 
   const login = async (email, password) => {
@@ -44,7 +52,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // NUEVO: ACTUALIZAR PERFIL (OPCIÓN C)
   const actualizarPerfil = async (nuevoNombre, nuevaPassword) => {
     try {
       const datosNuevos = {};
@@ -62,7 +69,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // NUEVO: ELIMINAR CUENTA (OPCIÓN C)
   const eliminarCuenta = async () => {
     try {
       await eliminarUsuarioAPI(usuario.id);
