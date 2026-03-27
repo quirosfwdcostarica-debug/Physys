@@ -1,15 +1,14 @@
 // src/App.jsx
 import React, { useState } from 'react';
 import { Toaster } from 'sonner';
-import PhysisAssistant from './components/PhysisAssistant';
-import Navbar from './components/Navbar';
-import BiologicalBackground from './components/BiologicalBackground';
-import Dashboard from './components/Dashboard';
-import Auth from './components/Auth';
-import AdminDashboard from './components/AdminDashboard';
-import Home from './pages/Home';
-import { useAuth } from './context/AuthContext';
-
+import PhysisAssistant from './PhysisAssistant';
+import Navbar from './Navbar';
+import BiologicalBackground from './BiologicalBackground';
+import Auth from './Auth';
+import AdminDashboard from './AdminDashboard';
+import Dashboard from './Dashboard';
+import Home from '../pages/Home';
+import { useAuth } from '../context/AuthContext';
 
 function Rutas() {
     const { usuario, cargandoAuth } = useAuth();
@@ -40,7 +39,7 @@ function Rutas() {
         {!usuario ? (
           // RUTA PÚBLICA
           mostrarHome ? (
-            <Home onGoToAuth={() => setMostrarHome(false)} />
+            <Home    onGoToAuth={() => setMostrarHome(false)} />
           ) : (
             <div className="relative z-20 w-full pt-16 md:pt-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <button 
