@@ -117,36 +117,29 @@ export const agregarConsejoAPI = async (consejo) => {
   return await respuesta.json();
 };
 
-export const obtenerReportes = async () => {
-  const respuesta = await fetch(`${BASE_URL}/reportes`);
-  if (!respuesta.ok) throw new Error("Error en la conexión con la red de Physis.");
-  return await respuesta.json();
-};
-
-export const registrarReprotes = async (objReporte) => {
-  const respuesta = await fetch(`${BASE_URL}/reportes`, {
+// --- NUEVO: TRANSMISIÓN DE SEÑALES (FEEDBACK) ---
+export const enviarFeedbackAPI = async (mensaje) => {
+  const respuesta = await fetch(`${BASE_URL}/feedback`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(objReporte)
+    body: JSON.stringify({
+      id: crypto.randomUUID(),
+      mensaje: mensaje,
+      fecha: new Date().toISOString(),
+      estado: 'nuevo'
+    })
   });
-  const reportes = respuesta.json();
-  return reportes;
+  if (!respuesta.ok) throw new Error("No se pudo transmitir la señal.");
+  return await respuesta.json();
 };
-
-export const actualizarReporte = async (id, datosNuevos) => {
-  const respuesta = await fetch(`${BASE_URL}/usuarios/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(datosNuevos)
-  });
-  if (!respuesta.ok) throw new Error("Error al actualizar el reporte.");
+// --- LECTURA Y PURGA DE SEÑALES (ADMIN) ---
+export const obtenerFeedbackAPI = async () => {
+  const respuesta = await fetch(`${BASE_URL}/feedback`);
   return await respuesta.json();
 };
 
-export const eliminarReportes = async (id) => {
-  const respuesta = await fetch(`${BASE_URL}/reportes/${id}`, { method: 'DELETE' });
-  if (!respuesta.ok) throw new Error("Error al eliminar el reporte.");
+export const eliminarFeedbackAPI = async (id) => {
+  const respuesta = await fetch(`${BASE_URL}/feedback/${id}`, { method: 'DELETE' });
+  if (!respuesta.ok) throw new Error("Fallo al eliminar la señal.");
   return true;
 };
-
-export default { obtenerReportes, registrarReprotes, actualizarReporte, eliminarReportes }

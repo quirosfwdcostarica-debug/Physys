@@ -86,6 +86,5 @@
     }
   ],
   "metas_usuario": [],
-  "reportes": [],
-  "$schema": "./node_modules/json-server/schema.json"
+  "feedback": []
 }
