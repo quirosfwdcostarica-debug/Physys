@@ -1,20 +1,3 @@
-import React from 'react'
-import Navbar from '../components/Navbar'
-
-function Home() {
-  return (
-    <div>
-        <Navbar/>
-        <PhysisAssistant/>
-        <BiologicalBackground/>
-        <Dashboard/>
-      
-    </div>
-  )
-}
-
-export default Home
-
 // src/pages/Home.jsx
 import React, { useState } from 'react';
 import { toast } from 'sonner';
