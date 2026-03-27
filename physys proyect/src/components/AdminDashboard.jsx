@@ -5,7 +5,9 @@ import {
   obtenerCategoriasAPI, 
   agregarCategoriaAPI, 
   eliminarCategoriaAPI,
-  agregarConsejoAPI 
+  agregarConsejoAPI,
+  obtenerFeedbackAPI,
+  eliminarFeedbackAPI
 } from '../services/Fetch';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -16,8 +18,8 @@ const AdminDashboard = () => {
   
   const [listaUsuarios, setListaUsuarios] = useState([]);
   const [listaCategorias, setListaCategorias] = useState([]);
+  const [listaFeedback, setListaFeedback] = useState([]); 
   
-  // Estado LIMPIO, sin imagen
   const [nuevaCat, setNuevaCat] = useState({ nombre: '', rubro: '', icono: '⚡', descripcion: '' });
   const [nuevoConsejo, setNuevoConsejo] = useState({ categoriaId: '', texto: '' });
 
@@ -27,15 +29,19 @@ const AdminDashboard = () => {
 
   const cargarDatosAdmin = async () => {
     try {
-      const [users, cats] = await Promise.all([obtenerTodosLosUsuariosAPI(), obtenerCategoriasAPI()]);
+      const [users, cats, feedbacks] = await Promise.all([
+        obtenerTodosLosUsuariosAPI(), 
+        obtenerCategoriasAPI(),
+        obtenerFeedbackAPI()
+      ]);
       setListaUsuarios(users);
       setListaCategorias(cats);
+      setListaFeedback(feedbacks.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
     } catch (error) {
       toast.error("Error al sincronizar datos de administrador.");
     }
   };
 
-  // --- CREADOR DE ÁREAS (SÚPER RÁPIDO Y LIGERO) ---
   const handleCrearCategoria = async (e) => {
     e.preventDefault();
     try {
@@ -74,6 +80,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleEliminarFeedback = async (id) => {
+    try {
+      await eliminarFeedbackAPI(id);
+      setListaFeedback(listaFeedback.filter(f => f.id !== id));
+      toast.info("Señal eliminada del registro.");
+    } catch (error) {
+      toast.error("Error al purgar la señal.");
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto pb-24 animate-in fade-in slide-in-from-bottom-8">
       
@@ -96,10 +112,18 @@ const AdminDashboard = () => {
           1. Opciones de Diagnóstico
         </button>
         <button onClick={() => setVistaActiva('conocimiento')} className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'conocimiento' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
-          2. Generador de Planes (Pasos)
+          2. Generador de Planes
         </button>
         <button onClick={() => setVistaActiva('usuarios')} className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer ${vistaActiva === 'usuarios' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
           👥 Monitor de Usuarios
+        </button>
+        <button onClick={() => setVistaActiva('feedback')} className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 cursor-pointer relative ${vistaActiva === 'feedback' ? 'bg-accent text-white shadow-[0_0_15px_var(--accent-primary)]' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
+          📡 Señales Recibidas
+          {listaFeedback.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-6 h-6 flex items-center justify-center rounded-full font-black animate-pulse">
+              {listaFeedback.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -212,6 +236,38 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {vistaActiva === 'feedback' && (
+        <div className="bg-black/40 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
+          <h3 className="text-xl font-bold text-accent mb-4">Bandeja de Transmisiones (Feedback)</h3>
+          
+          {listaFeedback.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">La red está en silencio. No hay transmisiones nuevas.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {listaFeedback.map(fb => (
+                <div key={fb.id} className="bg-white/5 border border-white/10 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-accent/50 transition-colors">
+                  <div className="w-full">
+                    <p className="text-xs text-gray-500 mb-2 font-mono">
+                      ID Transmisión: {fb.id.substring(0,8)} | Recibido: {new Date(fb.fecha).toLocaleString()}
+                    </p>
+                    <p className="text-gray-200 bg-black/30 p-4 rounded-xl text-sm border border-white/5 italic">
+                      "{fb.mensaje}"
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => handleEliminarFeedback(fb.id)} 
+                    className="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer"
+                  >
+                    Purgar Señal
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };
