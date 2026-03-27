@@ -20,6 +20,13 @@
       "email": "a@aq",
       "password": "2342",
       "rol": "usuario"
+    },
+    {
+      "id": "09f86e7e-7c5b-4ddc-993d-82dd2f9b9b64",
+      "nombre": "w",
+      "email": "a@a.com",
+      "password": "1234",
+      "rol": "usuario"
     }
   ],
   "categorias": [
@@ -79,5 +86,6 @@
     }
   ],
   "metas_usuario": [],
+  "reportes": [],
   "$schema": "./node_modules/json-server/schema.json"
 }

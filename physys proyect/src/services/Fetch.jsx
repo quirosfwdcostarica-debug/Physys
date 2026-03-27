@@ -116,3 +116,37 @@ export const agregarConsejoAPI = async (consejo) => {
   if (!respuesta.ok) throw new Error("Fallo al inyectar la directriz.");
   return await respuesta.json();
 };
+
+export const obtenerReportes = async () => {
+  const respuesta = await fetch(`${BASE_URL}/reportes`);
+  if (!respuesta.ok) throw new Error("Error en la conexión con la red de Physis.");
+  return await respuesta.json();
+};
+
+export const registrarReprotes = async (objReporte) => {
+  const respuesta = await fetch(`${BASE_URL}/reportes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(objReporte)
+  });
+  const reportes = respuesta.json();
+  return reportes;
+};
+
+export const actualizarReporte = async (id, datosNuevos) => {
+  const respuesta = await fetch(`${BASE_URL}/usuarios/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datosNuevos)
+  });
+  if (!respuesta.ok) throw new Error("Error al actualizar el reporte.");
+  return await respuesta.json();
+};
+
+export const eliminarReportes = async (id) => {
+  const respuesta = await fetch(`${BASE_URL}/reportes/${id}`, { method: 'DELETE' });
+  if (!respuesta.ok) throw new Error("Error al eliminar el reporte.");
+  return true;
+};
+
+export default { obtenerReportes, registrarReprotes, actualizarReporte, eliminarReportes }

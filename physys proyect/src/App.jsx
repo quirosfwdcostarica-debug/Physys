@@ -7,6 +7,7 @@ import BiologicalBackground from './components/BiologicalBackground';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
 import AdminDashboard from './components/AdminDashboard'; 
+import FeedbackForm from './components/FeedbackForm';
 import { useAuth } from './context/AuthContext';
 
 const App = () => {
